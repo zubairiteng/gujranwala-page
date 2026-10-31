@@ -1,0 +1,74 @@
+name: Hamara Gujranwala Facebook Autonomous Manager
+
+on:
+  schedule:
+    # 6 Peak Pakistan Timed Slots:
+    # 03:30 UTC = 08:30 AM PKT (Morning Briefing & Weather)
+    # 06:30 UTC = 11:30 AM PKT (Midday Real-Time News)
+    # 10:00 UTC = 03:00 PM PKT (Hero Tribute & Wrestling Pride)
+    # 13:30 UTC = 06:30 PM PKT (Evening Breaking Updates)
+    # 15:45 UTC = 08:45 PM PKT (Prime Food & Cultural Feature)
+    # 17:30 UTC = 10:30 PM PKT (Community Discussion & Question)
+    - cron: '30 3,6,10,13,15,17 * * *'
+
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Posting Action to Execute'
+        required: true
+        default: 'auto'
+        type: choice
+        options:
+          - 'auto'
+          - 'news'
+          - 'hero'
+          - 'culture'
+          - 'stats'
+
+permissions:
+  contents: write
+
+jobs:
+  run-facebook-engine:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install System Fonts (for Image Cards)
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends fonts-dejavu-core fonts-noto-core fonts-noto-cjk
+
+      - name: Install Python Dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Autonomous Engine
+        env:
+          FB_PAGE_ID: ${{ secrets.FB_PAGE_ID || '61578710350501' }}
+          FB_PAGE_ACCESS_TOKEN: ${{ secrets.FB_PAGE_ACCESS_TOKEN }}
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            python daily_engine.py --action ${{ inputs.action }}
+          else
+            python daily_engine.py --action auto
+          fi
+
+      - name: Commit & Push Updated History and Logs
+        run: |
+          git config --global user.name "Hamara Gujranwala Bot"
+          git config --global user.email "bot@hamara-gujranwala.local"
+          git add history.json daily_logs/
+          git diff --staged --quiet || git commit -m "chore: record published post & update daily growth log [skip ci]"
+          git push
