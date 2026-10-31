@@ -41,9 +41,20 @@ class FacebookPoster:
                 print(f"🎯 Target entity from /me: '{me_data.get('name')}' (ID: {me_data.get('id')})")
                 self._resolved_target_id = str(me_data["id"])
                 self._page_token = token
-                return self._resolved_target_id, self._page_token
         except Exception as e:
             print(f"Notice: /me check: {e}")
+
+        # Check permissions on this token for debugging
+        try:
+            p_resp = requests.get(f"{self.base_url}/me/permissions", params={"access_token": token}, timeout=10)
+            p_data = p_resp.json()
+            if "data" in p_data:
+                granted = [p.get("permission") for p in p_data["data"] if p.get("status") == "granted"]
+                print(f"📋 Granted permissions on this token: {granted}")
+            elif "error" in p_data:
+                print(f"Notice: permissions error: {p_data['error'].get('message')}")
+        except Exception as e:
+            print(f"Notice: Permissions lookup exception: {e}")
 
         # Check /me/accounts in case token is a User token managing the Page
         try:
@@ -67,9 +78,10 @@ class FacebookPoster:
         except Exception as e:
             print(f"Notice: me/accounts lookup: {e}")
 
-        # Fallback to defaults
-        self._resolved_target_id = "me"
-        self._page_token = token
+        if not self._resolved_target_id:
+            self._resolved_target_id = "me"
+        if not self._page_token:
+            self._page_token = token
         return self._resolved_target_id, self._page_token
 
     def get_page_stats(self):
@@ -132,7 +144,6 @@ class FacebookPoster:
 
         target_id, token = self.resolve_target_and_token()
 
-        # Primary attempt: Try resolved target ID and 'me'
         targets_to_try = [target_id]
         if target_id != "me":
             targets_to_try.append("me")
