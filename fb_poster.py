@@ -10,13 +10,67 @@ from config import FB_PAGE_ACCESS_TOKEN, GRAPH_API_BASE_URL, PAGE_ID, PAGE_NAME
 
 class FacebookPoster:
     def __init__(self, page_id=None, access_token=None):
-        self.page_id = page_id or PAGE_ID
-        self.access_token = (access_token or FB_PAGE_ACCESS_TOKEN or "").strip()
+        self.page_id = str(page_id or PAGE_ID).strip()
+        self.raw_token = (access_token or FB_PAGE_ACCESS_TOKEN or "").strip()
         self.base_url = GRAPH_API_BASE_URL
+        self._page_token = None
 
     def is_configured(self):
         """Check if access token is available."""
-        return bool(self.access_token and self.access_token != "YOUR_FACEBOOK_PAGE_ACCESS_TOKEN")
+        return bool(self.raw_token and self.raw_token != "YOUR_FACEBOOK_PAGE_ACCESS_TOKEN")
+
+    def get_effective_page_token(self):
+        """
+        Ensure we are using a Page Access Token, not a User Access Token.
+        If a User Access Token was provided, automatically query Graph API
+        to resolve the actual Page Access Token for this Page ID.
+        """
+        if self._page_token:
+            return self._page_token
+
+        if not self.is_configured():
+            return ""
+
+        # Step 1: Check if raw_token directly gives access_token for the Page
+        try:
+            url = f"{self.base_url}/{self.page_id}"
+            resp = requests.get(url, params={"fields": "access_token,name", "access_token": self.raw_token}, timeout=15)
+            data = resp.json()
+            if resp.status_code == 200 and "access_token" in data:
+                print(f"🔄 Automatically resolved Page Access Token for '{data.get('name', self.page_id)}'!")
+                self._page_token = data["access_token"]
+                return self._page_token
+        except Exception as e:
+            print(f"Notice: Direct page token lookup: {e}")
+
+        # Step 2: Try /me/accounts in case raw_token is a User Token with pages_show_list
+        try:
+            url = f"{self.base_url}/me/accounts"
+            resp = requests.get(url, params={"access_token": self.raw_token}, timeout=15)
+            data = resp.json()
+            if "data" in data and isinstance(data["data"], list):
+                for page in data["data"]:
+                    p_id = str(page.get("id"))
+                    p_name = page.get("name")
+                    if p_id == self.page_id or "gujranwala" in p_name.lower():
+                        if "access_token" in page:
+                            print(f"🔄 Found Page Access Token in /me/accounts for '{p_name}' ({p_id})!")
+                            self.page_id = p_id
+                            self._page_token = page["access_token"]
+                            return self._page_token
+                # Fallback: If only 1 page is managed, use its token
+                if len(data["data"]) == 1 and "access_token" in data["data"][0]:
+                    page = data["data"][0]
+                    print(f"🔄 Using Page Access Token for managed page '{page.get('name')}' ({page.get('id')})!")
+                    self.page_id = str(page.get("id"))
+                    self._page_token = page["access_token"]
+                    return self._page_token
+        except Exception as e:
+            print(f"Notice: me/accounts lookup: {e}")
+
+        # Step 3: Default to raw_token
+        self._page_token = self.raw_token
+        return self._page_token
 
     def get_page_stats(self):
         """Fetch live page statistics (Follower count, likes)."""
@@ -30,10 +84,11 @@ class FacebookPoster:
                 "message": "FB_PAGE_ACCESS_TOKEN not set in environment/secrets."
             }
 
+        token = self.get_effective_page_token()
         url = f"{self.base_url}/{self.page_id}"
         params = {
             "fields": "id,name,followers_count,fan_count,verification_status",
-            "access_token": self.access_token
+            "access_token": token
         }
 
         try:
@@ -75,10 +130,11 @@ class FacebookPoster:
         if not os.path.exists(image_path):
             return {"success": False, "error": f"Image file not found: {image_path}"}
 
+        token = self.get_effective_page_token()
         url = f"{self.base_url}/{self.page_id}/photos"
         data = {
             "caption": caption,
-            "access_token": self.access_token
+            "access_token": token
         }
 
         try:
@@ -98,8 +154,9 @@ class FacebookPoster:
                 }
             else:
                 err_msg = result.get("error", {}).get("message", "Unknown Facebook API error")
-                print(f"❌ Failed to post photo to Facebook: {err_msg}")
-                return {"success": False, "error": err_msg, "raw": result}
+                err_code = result.get("error", {}).get("code")
+                print(f"❌ Failed to post photo to Facebook: {err_msg} (Code: {err_code})")
+                return {"success": False, "error": err_msg, "code": err_code, "raw": result}
         except Exception as e:
             print(f"❌ Exception posting photo: {e}")
             return {"success": False, "error": str(e)}
@@ -116,10 +173,11 @@ class FacebookPoster:
                 "id": "dry_run_feed_id"
             }
 
+        token = self.get_effective_page_token()
         url = f"{self.base_url}/{self.page_id}/feed"
         data = {
             "message": message,
-            "access_token": self.access_token
+            "access_token": token
         }
         if link:
             data["link"] = link
