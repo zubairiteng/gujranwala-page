@@ -1,201 +1,296 @@
 """
 Card Generator for Hamara Gujranwala Facebook Page.
 Renders branded news cards using the official Hamara Gujranwala Template (1024x1024)
-and genuine Jameel Noori Nastaleeq Kasheeda calligraphy font.
+and genuine Jameel Noori Nastaleeq Kasheeda typography via headless browser engine.
 """
 
 import os
+import shutil
+import subprocess
 from datetime import datetime
-import arabic_reshaper
-from bidi.algorithm import get_display
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image
 
 TEMPLATE_PATH = "assets/template.jpg"
 FONT_PATH = "assets/fonts/Jameel_Noori_Nastaleeq_Kasheeda.ttf"
 DEFAULT_PHOTO = "assets/sample_news_photo.jpg"
 
-CREAM_BG = (251, 248, 233)
-DARK_GREEN = (6, 44, 26)
-PILL_GREEN = (42, 71, 53)
-GOLD_TEXT = (250, 204, 21)
-GOLD_BORDER = (202, 138, 4)
-DESC_TEXT = (35, 45, 55)
+
+def get_browser_executable():
+    """Locate headless Chrome / Edge / Chromium across Windows and Linux."""
+    candidates = [
+        r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
+        r"C:\Program Files\Microsoft\Edge\Application\msedge.exe",
+        r"C:\Program Files\Google\Chrome\Application\chrome.exe",
+        r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe",
+        shutil.which("msedge"),
+        shutil.which("chrome"),
+        shutil.which("google-chrome"),
+        shutil.which("chromium"),
+        shutil.which("chromium-browser"),
+        "/usr/bin/google-chrome",
+        "/usr/bin/chromium",
+        "/usr/bin/chromium-browser"
+    ]
+    for c in candidates:
+        if c and os.path.exists(c):
+            return c
+    return None
 
 
-def urdu(text):
-    """Reshape and reorder Urdu text for correct RTL Nastaleeq rendering."""
-    if not text:
-        return ""
-    try:
-        reshaped = arabic_reshaper.reshape(text)
-        return get_display(reshaped)
-    except Exception:
-        return text
-
-
-def wrap_urdu_lines(text, max_words=7):
-    """Split long Urdu text into balanced lines for headlines."""
-    words = text.strip().split()
-    if len(words) <= max_words:
-        return [text]
-    
-    mid = len(words) // 2
-    # Adjust break point
-    line1 = " ".join(words[:mid + (len(words) % 2)])
-    line2 = " ".join(words[mid + (len(words) % 2):])
-    return [line1, line2]
+def get_urdu_date(dt=None):
+    """Format date into standard Urdu string."""
+    months_ur = [
+        "جنوری", "فروری", "مارچ", "اپریل", "مئی", "جون",
+        "جولائی", "اگست", "ستمبر", "اکتوبر", "نومبر", "دسمبر"
+    ]
+    d = dt or datetime.now()
+    return f"{d.day:02d} {months_ur[d.month - 1]} {d.year}ء"
 
 
 def generate_templated_news_card(
     headline,
-    description,
-    category="بریکنگ نیوز",
+    description="ضلعی انتظامیہ کی جانب سے شہریوں کے تحفظ اور امن و امان کے لیے اقدامات جاری",
+    category="اہم خبر",
     photo_path=None,
     date_str=None,
     source_str="حوالہ: گوجرانوالہ پیج / ذرائع",
     output_path="news_card.png"
 ):
     """
-    Renders an official, beautifully styled Hamara Gujranwala news card
-    using the official 1024x1024 template and Jameel Noori Nastaleeq Kasheeda.
+    Renders the official 1024x1024 news card with exact typography
+    in Jameel Noori Nastaleeq Kasheeda.
     """
-    if not os.path.exists(TEMPLATE_PATH):
-        raise FileNotFoundError(f"Template image missing at {TEMPLATE_PATH}")
+    browser_exe = get_browser_executable()
+    if not browser_exe:
+        raise RuntimeError("No compatible headless browser (Edge/Chrome/Chromium) found for Nastaleeq rendering.")
 
-    img = Image.open(TEMPLATE_PATH).convert("RGB")
-    draw = ImageDraw.Draw(img)
+    template_abs = os.path.abspath(TEMPLATE_PATH).replace("\\", "/")
+    font_abs = os.path.abspath(FONT_PATH).replace("\\", "/")
+    
+    photo_to_use = photo_path if (photo_path and os.path.exists(photo_path)) else DEFAULT_PHOTO
+    photo_abs = os.path.abspath(photo_to_use).replace("\\", "/")
 
-    # Load Jameel Noori Nastaleeq Kasheeda font
-    if os.path.exists(FONT_PATH):
-        font_cat = ImageFont.truetype(FONT_PATH, 24)
-        font_hl = ImageFont.truetype(FONT_PATH, 40)
-        font_desc = ImageFont.truetype(FONT_PATH, 28)
-        font_meta = ImageFont.truetype(FONT_PATH, 22)
-    else:
-        # Fallback to default
-        font_cat = font_hl = font_desc = font_meta = ImageFont.load_default()
-
-    # 1. Category Pill
-    draw.rectangle([(405, 168), (620, 198)], fill=PILL_GREEN)
-    cat_t = urdu(category)
-    bbox = font_cat.getbbox(cat_t)
-    tw = bbox[2] - bbox[0]
-    draw.text((512 - tw // 2, 164), cat_t, font=font_cat, fill=GOLD_TEXT)
-
-    # 2. News Photo inside Green Arch Frame
-    img_to_use = photo_path if (photo_path and os.path.exists(photo_path)) else DEFAULT_PHOTO
-    if os.path.exists(img_to_use):
-        try:
-            photo = Image.open(img_to_use).convert("RGB")
-            target_w, target_h = 580, 315
-
-            # Resize & center crop to target dimensions
-            img_ratio = photo.width / photo.height
-            target_ratio = target_w / target_h
-            if img_ratio > target_ratio:
-                new_h = target_h
-                new_w = int(target_h * img_ratio)
-            else:
-                new_w = target_w
-                new_h = int(target_w / img_ratio)
-            photo = photo.resize((new_w, new_h), Image.Resampling.LANCZOS)
-            left = (new_w - target_w) // 2
-            top = (new_h - target_h) // 2
-            photo = photo.crop((left, top, left + target_w, top + target_h))
-
-            px = (1024 - target_w) // 2
-            py = 252
-
-            # Golden border frame
-            draw.rectangle([(px - 3, py - 3), (px + target_w + 2, py + target_h + 2)], fill=GOLD_BORDER)
-            draw.rectangle([(px - 1, py - 1), (px + target_w, py + target_h)], fill=DARK_GREEN)
-            img.paste(photo, (px, py))
-        except Exception as e:
-            print(f"Notice: Failed to load photo: {e}")
-
-    # 3. Clean Template Placeholders with solid cream background
-    draw.rectangle([(75, 615), (949, 818)], fill=CREAM_BG)
-    draw.rectangle([(75, 830), (949, 878)], fill=CREAM_BG)
-    draw.rectangle([(105, 888), (360, 922)], fill=CREAM_BG)
-    draw.rectangle([(710, 888), (950, 922)], fill=CREAM_BG)
-
-    # 4. Draw Headline in Jameel Noori Nastaleeq Kasheeda
-    lines = wrap_urdu_lines(headline, max_words=7)
-    if len(lines) == 1:
-        hl_text = urdu(lines[0])
-        b = font_hl.getbbox(hl_text)
-        tw = b[2] - b[0]
-        draw.text((512 - tw // 2, 675), hl_text, font=font_hl, fill=DARK_GREEN)
-    else:
-        y_positions = [638, 712]
-        for idx, line in enumerate(lines[:2]):
-            hl_text = urdu(line)
-            b = font_hl.getbbox(hl_text)
-            tw = b[2] - b[0]
-            draw.text((512 - tw // 2, y_positions[idx]), hl_text, font=font_hl, fill=DARK_GREEN)
-
-    # 5. Draw Description
-    if description:
-        desc_text = urdu(description)
-        b = font_desc.getbbox(desc_text)
-        tw = b[2] - b[0]
-        draw.text((512 - tw // 2, 836), desc_text, font=font_desc, fill=DESC_TEXT)
-
-    # 6. Draw Date
     if not date_str:
-        # Format today's date in Urdu
-        months_ur = [
-            "جنوری", "فروری", "مارچ", "اپریل", "مئی", "جون",
-            "جولائی", "اگست", "ستمبر", "اکتوبر", "نومبر", "دسمبر"
-        ]
         now = datetime.now()
-        date_str = f"{now.day:02d} {months_ur[now.month - 1]} {now.year}ء"
+        date_str = f"🗓️ {now.day:02d} {now.strftime('%b %Y')}"
+    elif not date_str.startswith("🗓️"):
+        date_str = f"🗓️ {date_str}"
 
-    date_t = urdu(date_str)
-    draw.text((115, 891), date_t, font=font_meta, fill=DARK_GREEN)
+    if not source_str.startswith("📷"):
+        source_str = f"📷 {source_str}"
 
-    # 7. Draw Source
-    src_t = urdu(source_str)
-    b = font_meta.getbbox(src_t)
-    draw.text((935 - (b[2] - b[0]), 891), src_t, font=font_meta, fill=DARK_GREEN)
+    html_content = f"""<!DOCTYPE html>
+<html>
+<head>
+<meta charset='utf-8'>
+<style>
+  @font-face {{
+    font-family: 'JameelKasheeda';
+    src: url('file:///{font_abs}');
+  }}
+  * {{
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }}
+  body {{
+    width: 1024px;
+    height: 1024px;
+    overflow: hidden;
+    position: relative;
+    background-image: url('file:///{template_abs}');
+    background-size: 1024px 1024px;
+    font-family: 'JameelKasheeda', 'Noto Nastaliq Urdu', 'Segoe UI', Tahoma, sans-serif;
+    direction: rtl;
+    -webkit-font-smoothing: antialiased;
+  }}
+  /* Category Pill */
+  .category-pill {{
+    position: absolute;
+    top: 168px;
+    left: 405px;
+    width: 214px;
+    height: 30px;
+    background: #2a4735;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fde047;
+    font-size: 24px;
+    line-height: 30px;
+    text-align: center;
+    padding-bottom: 4px;
+  }}
+  /* Photo Frame in Green Arch */
+  .photo-frame {{
+    position: absolute;
+    top: 250px;
+    left: 222px;
+    width: 580px;
+    height: 315px;
+    border: 3px solid #ca8a04;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #062c1a;
+  }}
+  .photo-frame img {{
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }}
+  /* Headline Area */
+  .text-cover {{
+    position: absolute;
+    top: 618px;
+    left: 75px;
+    width: 874px;
+    height: 198px;
+    background: #fbf8e9;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 0 25px;
+  }}
+  .headline {{
+    color: #062c1a;
+    font-size: 46px;
+    line-height: 1.45;
+    font-weight: bold;
+    text-shadow: 0 1px 1px rgba(0,0,0,0.05);
+  }}
+  /* Description Area */
+  .desc-cover {{
+    position: absolute;
+    top: 832px;
+    left: 75px;
+    width: 874px;
+    height: 44px;
+    background: #fbf8e9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #1e293b;
+    font-size: 28px;
+    line-height: 36px;
+    text-align: center;
+    padding: 0 20px;
+  }}
+  /* Meta Row */
+  .meta-date {{
+    position: absolute;
+    top: 888px;
+    left: 75px;
+    width: 320px;
+    height: 32px;
+    background: #fbf8e9;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    color: #062c1a;
+    font-size: 22px;
+    direction: ltr;
+    padding-left: 35px;
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    font-weight: 600;
+  }}
+  .meta-source {{
+    position: absolute;
+    top: 888px;
+    right: 75px;
+    width: 440px;
+    height: 32px;
+    background: #fbf8e9;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    color: #062c1a;
+    font-size: 22px;
+    direction: rtl;
+    padding-right: 35px;
+    font-weight: bold;
+  }}
+</style>
+</head>
+<body>
+  <div class='category-pill'>{category}</div>
+  <div class='photo-frame'>
+    <img src='file:///{photo_abs}'>
+  </div>
+  <div class='text-cover'>
+    <div class='headline'>{headline}</div>
+  </div>
+  <div class='desc-cover'>{description}</div>
+  <div class='meta-date'>{date_str}</div>
+  <div class='meta-source'>{source_str}</div>
+</body>
+</html>"""
 
-    os.makedirs(os.path.dirname(output_path) if os.path.dirname(output_path) else ".", exist_ok=True)
-    img.save(output_path, quality=95)
+    temp_html = "temp_render_card.html"
+    with open(temp_html, "w", encoding="utf-8") as f:
+        f.write(html_content)
+
+    abs_html = os.path.abspath(temp_html).replace("\\", "/")
+    abs_out = os.path.abspath(output_path).replace("\\", "/")
+
+    cmd = [
+        browser_exe,
+        "--headless=new",
+        "--disable-gpu",
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        f"--screenshot={abs_out}",
+        "--window-size=1024,1024",
+        "--hide-scrollbars",
+        f"file:///{abs_html}"
+    ]
+
+    try:
+        subprocess.run(cmd, check=True, capture_output=True)
+    finally:
+        if os.path.exists(temp_html):
+            try:
+                os.remove(temp_html)
+            except Exception:
+                pass
+
+    if not os.path.exists(output_path):
+        raise RuntimeError(f"Card rendering failed to produce {output_path}")
+
     return output_path
 
 
-# Backwards compatibility wrappers
-def generate_news_card(title, source_name, category="BREAKING NEWS", output_path="card.png", photo_path=None):
-    """Wrapper that routes to the official templated card generator."""
-    # Create natural Urdu headline and short description
-    desc = "تفصیلات اور تازہ ترین صورتحال جاننے کے لیے ہمارے پیج کو فالو کریں"
+def generate_news_card(title, source_name, category="اہم خبر", output_path="card.png", photo_path=None):
+    """Wrapper routing to templated card generator."""
     return generate_templated_news_card(
         headline=title,
-        description=desc,
-        category="اہم خبر",
+        description="تفصیلات اور تازہ ترین صورتحال کے لیے ہمارے پیج کو فالو کریں",
+        category=category,
         photo_path=photo_path,
-        source_str=f"حوالہ: {source_name}",
+        source_str=f"ذریعہ: گوجرانوالہ پیج / {source_name}",
         output_path=output_path
     )
 
 
 def generate_hero_card(hero, output_path="hero_card.png"):
-    """Wrapper for hero tributes using the official template."""
+    """Wrapper for hero tributes."""
     return generate_templated_news_card(
-        headline=f"{hero['name_ur']}: گوجرانوالہ کا تاریخی اعزاز",
-        description=hero.get("tagline", "پہلوانوں اور تاریخی ہیروز کا عظیم شہر"),
+        headline=f"{hero['name_ur']}: گوجرانوالہ کا تاریخی فخر",
+        description=hero.get("tagline", "پہلوانوں اور روایات کا عظیم شہر"),
         category="گوجرانوالہ کا فخر",
         photo_path=None,
-        source_str="حوالہ: ہمارا گوجرانوالہ",
+        source_str="ذریعہ: ہمارا گوجرانوالہ",
         output_path=output_path
     )
 
 
 if __name__ == "__main__":
     out = generate_templated_news_card(
-        headline="گوجرانوالہ میں سموگ اور فضائی آلودگی کے خلاف بڑا ایکشن",
-        description="ضلعی انتظامیہ کی جانب سے شہریوں کی صحت اور ماحول کے تحفظ کے لیے سخت احکامات جاری",
+        headline="گوجرانوالہ میں سموگ اور فضائی آلودگی کے خلاف بڑا ایکشن، فیکٹریاں سیل",
+        description="ضلعی انتظامیہ کی جانب سے شہریوں کی صحت اور ماحول کے تحفظ کے لیے احکامات جاری",
         category="اہم خبر",
-        output_path="test_templated_card.png"
+        output_path="test_perfect_render.png"
     )
-    print("Generated:", out)
+    print("Rendered:", out, "Size:", os.path.getsize(out))
