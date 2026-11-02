@@ -178,39 +178,40 @@ def generate_templated_news_card(
     text-align: center;
     padding: 0 20px;
   }}
-  /* Meta Row */
-  .meta-date {{
+  /* Meta Row: Clean full bar covering the template's placeholder text completely */
+  .meta-bar {{
     position: absolute;
-    top: 888px;
-    left: 75px;
-    width: 320px;
-    height: 32px;
+    top: 868px;
+    left: 55px;
+    width: 914px;
+    height: 70px;
     background: #fbf8e9;
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    justify-content: flex-start;
-    color: #062c1a;
-    font-size: 22px;
+    padding: 0 10px;
+    box-sizing: border-box;
     direction: ltr;
-    padding-left: 35px;
-    font-family: 'Segoe UI', Tahoma, sans-serif;
+  }}
+  .meta-date {{
+    display: flex;
+    align-items: center;
+    color: #062c1a;
+    font-size: 21px;
+    font-family: 'Segoe UI', Tahoma, 'JameelKasheeda', sans-serif;
     font-weight: 600;
+    direction: ltr;
+    padding-left: 10px;
   }}
   .meta-source {{
-    position: absolute;
-    top: 888px;
-    right: 75px;
-    width: 440px;
-    height: 32px;
-    background: #fbf8e9;
     display: flex;
     align-items: center;
-    justify-content: flex-start;
     color: #062c1a;
-    font-size: 22px;
-    direction: rtl;
-    padding-right: 35px;
+    font-size: 23px;
+    font-family: 'JameelKasheeda', 'Noto Nastaliq Urdu', Tahoma, sans-serif;
     font-weight: bold;
+    direction: rtl;
+    padding-right: 10px;
   }}
 </style>
 </head>
@@ -223,8 +224,10 @@ def generate_templated_news_card(
     <div class='headline'>{headline}</div>
   </div>
   <div class='desc-cover'>{description}</div>
-  <div class='meta-date'>{date_str}</div>
-  <div class='meta-source'>{source_str}</div>
+  <div class='meta-bar'>
+    <div class='meta-date'>{date_str}</div>
+    <div class='meta-source'>{source_str}</div>
+  </div>
 </body>
 </html>"""
 
