@@ -1,7 +1,8 @@
 {
   "posted_ids": [
     "c0fdc120d6d850238bd0bb87159f5eff",
-    "00c6238da7c45f2eb6da18f78f5072f8"
+    "00c6238da7c45f2eb6da18f78f5072f8",
+    "approved_smog_20261102"
   ],
   "posted_urls": [
     "https://news.google.com/rss/articles/CBMiSEFVX3lxTE90QUNRYnhYanU0cnpPSmZ6SF9qN3U0VjEwX1BXUVFiZl9BcE5aM3gzeUZPanFlUGQ1a2lQbldsQ2JndXhCa3hpeA?oc=5",
@@ -21,5 +22,13 @@
     "gama_pehlwan",
     "gama_pehlwan",
     "gama_pehlwan"
+  ],
+  "published_posts": [
+    {
+      "post_id": "773745422479703_122184005870957011",
+      "permalink": "https://www.facebook.com/122184005930957011/posts/122184005870957011",
+      "timestamp": "2026-11-02T20:06:48+05:00",
+      "topic": "Smog and air pollution crackdown"
+    }
   ]
 }
