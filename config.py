@@ -20,7 +20,7 @@ GRAPH_API_BASE_URL = f"https://graph.facebook.com/{GRAPH_API_VERSION}"
 # Target Metrics
 TARGET_FOLLOWERS = 2000
 DAYS_TIMEFRAME = 30
-DAILY_POST_TARGET = 6  # Minimum 6 posts per day
+DAILY_POST_TARGET = 7  # 5 to 7 posts per day (7 automated slots)
 
 # Editorial Guardrails (Strict Source Verification & Community Safety)
 APPROVED_NEWS_SOURCES = [

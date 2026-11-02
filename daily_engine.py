@@ -178,6 +178,51 @@ def run_culture_post(poster):
     return res
 
 
+def run_approved_post(poster):
+    """Publish the user-approved news post immediately."""
+    print("📢 Publishing user-approved Smog Crackdown Post...")
+    card_path = "assets/todays_approved_card.png"
+    if not os.path.exists(card_path):
+        card_path = "news_card.png"
+        generate_templated_news_card(
+            headline="گوجرانوالہ میں سموگ اور فضائی آلودگی کے خلاف بڑا ایکشن، فیکٹریاں سیل",
+            description="ضلعی انتظامیہ کی جانب سے شہریوں کی صحت اور ماحول کے تحفظ کے لیے احکامات جاری",
+            category="اہم خبر",
+            photo_path="assets/smog_photo_1.jpg",
+            date_str="02 نومبر 2026ء",
+            source_str="حوالہ: گوجرانوالہ پیج / ایکسپریس نیوز",
+            output_path=card_path
+        )
+
+    caption = """🚨 گوجرانوالہ اہم خبر | تازہ ترین اپڈیٹ
+━━━━━━━━━━━━━━━━━━━━
+
+📢 گوجرانوالہ میں سموگ اور فضائی آلودگی کے خلاف بڑا ایکشن، متعدد بھٹے اور فیکٹریاں سیل
+
+تفصیلات کے مطابق:
+گوجرانوالہ اور گردونواح میں ماحولیاتی تحفظ اور سموگ کے تدارک کے لیے ضلعی انتظامیہ اور محکمہ تحفظِ ماحول کی جانب سے گرینڈ آپریشن شروع کر دیا گیا ہے۔ حکومتی احکامات کی خلاف ورزی کرنے والے صنعتی یونٹس، بھٹوں اور دھواں چھوڑنے والی گاڑیوں کے خلاف بلا امتیاز کارروائیاں جاری ہیں۔
+
+📌 مصدقہ حوالہ: گوجرانوالہ پیج / ایکسپریس نیوز
+🗓️ تاریخ: 02 نومبر 2026ء
+
+⚠️ شہریوں سے گزارش ہے کہ سموگ سے بچاؤ کے لیے حفاظتی تدابیر اختیار کریں اور ماحولیاتی ضوابط کی پاسداری کریں۔
+
+💬 گوجرانوالہ کے شہریوں کی انتظامیہ کے اس اقدام کے بارے میں کیا رائے ہے؟ کمنٹس میں ضرور بتائیں۔
+
+━━━━━━━━━━━━━━━━━━━━
+👉 گوجرانوالہ کی ہر گلی، ہر چوک اور ہر لمحے کی سچی خبر سب سے پہلے حاصل کرنے کے لیے ہمارے پیج 'Hamara Gujranwala' کو لائک اور فالو کریں!
+
+#HamaraGujranwala #GujranwalaNews #Gujranwala #گوجرانوالہ #گوجرانوالہ_اپڈیٹس #SmogUpdate #HamaraGujranwalaOfficial"""
+
+    res = poster.post_photo(card_path, caption)
+    log_daily_event(
+        "User-Approved News Post",
+        "Topic: Smog and Air Pollution Crackdown in Gujranwala",
+        post_id=res.get("post_id") or res.get("id")
+    )
+    return res
+
+
 def determine_auto_action():
     """Determine best action based on current Pakistan hour (PKT)."""
     pkt_hour = get_pkt_now().hour
@@ -199,7 +244,7 @@ def determine_auto_action():
 
 def main():
     parser = argparse.ArgumentParser(description="Hamara Gujranwala Facebook Automation Engine")
-    parser.add_argument("--action", choices=["auto", "news", "hero", "culture", "stats"], default="auto",
+    parser.add_argument("--action", choices=["auto", "approved", "news", "hero", "culture", "stats"], default="auto",
                         help="Action to execute")
     args = parser.parse_args()
 
@@ -216,7 +261,9 @@ def main():
 
     print(f"🚀 Executing Action: [{action.upper()}] for Facebook Page '{PAGE_NAME}'...")
 
-    if action == "news":
+    if action == "approved":
+        res = run_approved_post(poster)
+    elif action == "news":
         res = run_news_post(poster)
     elif action == "hero":
         res = run_hero_post(poster)
