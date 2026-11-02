@@ -1,7 +1,7 @@
 """
 Main Autonomous Execution Engine for Hamara Gujranwala Facebook Page.
-Executes scheduled posting slots (News, Heroes, Heritage, Food & Community Discussions),
-generates branded image cards, calls Facebook Graph API, and logs growth progress.
+Executes scheduled posting slots using the official Hamara Gujranwala 1024x1024 Template
+and genuine Jameel Noori Nastaleeq Kasheeda typography.
 """
 
 import argparse
@@ -18,7 +18,7 @@ if sys.stdout.encoding != 'utf-8':
         pass
 
 from config import DAILY_POST_TARGET, PAGE_ID, PAGE_NAME, TARGET_FOLLOWERS
-from card_generator import generate_hero_card, generate_news_card
+from card_generator import generate_hero_card, generate_templated_news_card
 from content_formatter import format_culture_post, format_hero_post, format_news_post
 from fb_poster import FacebookPoster
 from heroes_bank import get_unposted_hero
@@ -31,6 +31,16 @@ def get_pkt_now():
     """Return current datetime in Pakistan Standard Time (UTC+5)."""
     utc_now = datetime.datetime.now(datetime.timezone.utc)
     return utc_now + datetime.timedelta(hours=5)
+
+
+def get_urdu_date():
+    """Return today's date formatted in Urdu."""
+    months_ur = [
+        "جنوری", "فروری", "مارچ", "اپریل", "مئی", "جون",
+        "جولائی", "اگست", "ستمبر", "اکتوبر", "نومبر", "دسمبر"
+    ]
+    now = get_pkt_now()
+    return f"{now.day:02d} {months_ur[now.month - 1]} {now.year}ء"
 
 
 def log_daily_event(action_name, details, post_id=None):
@@ -47,10 +57,9 @@ def log_daily_event(action_name, details, post_id=None):
         entry += "- **Status**: Logged / Simulated\n"
     entry += f"- **Details**: {details}\n\n"
 
-    # Create file with header if not exists
     if not os.path.exists(log_file):
         with open(log_file, "w", encoding="utf-8") as f:
-            f.write(f"# Daily Activity Log — {today_str}\n")
+            f.write(f"# Daily Activity Log - {today_str}\n")
             f.write(f"**Page:** {PAGE_NAME} (`{PAGE_ID}`) | **Target:** {TARGET_FOLLOWERS} Followers\n\n")
             f.write("## Published Events\n\n")
 
@@ -59,35 +68,40 @@ def log_daily_event(action_name, details, post_id=None):
 
 
 def run_news_post(poster):
-    """Fetch verified Gujranwala news, generate card, and publish."""
-    print("🔎 Searching for fresh verified Gujranwala news...")
+    """Fetch verified Gujranwala news, generate card on official template, and publish."""
+    print("🔎 Searching for fresh verified Gujranwala news (within 48 hours)...")
     news_items = fetch_gujranwala_news(limit=1)
 
     if not news_items:
-        print("⚠️ No unposted breaking news found at this moment. Falling back to Hero/Cultural Spotlight.")
+        print("⚠️ No unposted breaking news found in the last 48 hours. Falling back to Hero/Cultural Spotlight.")
         return run_hero_post(poster)
 
     item = news_items[0]
-    print(f"📰 Found News: [{item['source']}] {item['title']}")
+    print(f"📰 Found Fresh News: [{item['source']}] {item['title']}")
 
-    # Generate Image Card
     temp_card = "temp_news_card.png"
-    generate_news_card(item["title"], item["source"], category="BREAKING NEWS", output_path=temp_card)
+    date_str = get_urdu_date()
+    source_str = f"حوالہ: گوجرانوالہ پیج / {item['source']}"
 
-    # Format Caption
+    # Generate card using official template and Jameel Noori Nastaleeq Kasheeda
+    generate_templated_news_card(
+        headline=item["title"],
+        description="تفصیلات اور لمحہ بہ لمحہ خبروں کے لیے ہمارے پیج کو فالو کریں",
+        category="اہم خبر",
+        date_str=date_str,
+        source_str=source_str,
+        output_path=temp_card
+    )
+
     caption = format_news_post(item)
-
-    # Post to Facebook
     res = poster.post_photo(temp_card, caption)
 
-    # Cleanup temp card
     if os.path.exists(temp_card):
         try:
             os.remove(temp_card)
         except Exception:
             pass
 
-    # Save to history
     history = load_history()
     history.setdefault("posted_ids", []).append(item["id"])
     history.setdefault("posted_urls", []).append(item["link"])
@@ -102,7 +116,7 @@ def run_news_post(poster):
 
 
 def run_hero_post(poster):
-    """Select a Gujranwala hero, generate card, and publish tribute."""
+    """Select a Gujranwala hero, generate tribute card on official template, and publish."""
     print("🌟 Selecting Gujranwala hero/legend tribute...")
     history = load_history()
     posted_heroes = set(history.get("posted_heroes", []))
@@ -110,24 +124,18 @@ def run_hero_post(poster):
     hero = get_unposted_hero(posted_heroes)
     print(f"🏆 Selected Hero: {hero['name_ur']} ({hero['name_en']})")
 
-    # Generate Image Card
     temp_card = "temp_hero_card.png"
     generate_hero_card(hero, output_path=temp_card)
 
-    # Format Caption
     caption = format_hero_post(hero)
-
-    # Post to Facebook
     res = poster.post_photo(temp_card, caption)
 
-    # Cleanup temp card
     if os.path.exists(temp_card):
         try:
             os.remove(temp_card)
         except Exception:
             pass
 
-    # Save to history
     history.setdefault("posted_heroes", []).append(hero["id"])
     save_history(history)
 
@@ -140,16 +148,17 @@ def run_hero_post(poster):
 
 
 def run_culture_post(poster):
-    """Publish Gujranwala food/culture discussion post."""
+    """Publish Gujranwala food/culture discussion post using official template."""
     print("🍲 Preparing Gujranwala food & cultural engagement post...")
     caption = format_culture_post()
 
-    # Generate News/Culture card
     temp_card = "temp_culture_card.png"
-    generate_news_card(
-        "Gujranwala Food & Cultural Heritage - What is your favorite spot?",
-        "Hamara Gujranwala Community",
-        category="FOOD & CULTURE",
+    generate_templated_news_card(
+        headline="گوجرانوالہ کے روایتی کھانے اور ثقافتی پہچان",
+        description="چراغ کے تکے، کھیا علی گیٹ کی لسی اور دال بازار کا لذیذ ذائقہ",
+        category="ذائقہ گوجرانوالہ کا",
+        date_str=get_urdu_date(),
+        source_str="حوالہ: ہمارا گوجرانوالہ",
         output_path=temp_card
     )
 
@@ -174,22 +183,16 @@ def determine_auto_action():
     pkt_hour = get_pkt_now().hour
     print(f"🕒 Current Pakistan Time: {get_pkt_now().strftime('%Y-%m-%d %I:%M %p PKT')} (Hour: {pkt_hour})")
 
-    # Morning (7-10 AM PKT): News / Morning Brief
     if 7 <= pkt_hour < 11:
         return "news"
-    # Midday (11 AM - 2 PM PKT): Real-time news update
     elif 11 <= pkt_hour < 14:
         return "news"
-    # Afternoon (2 PM - 5 PM PKT): Hero tribute & Wrestling pride
     elif 14 <= pkt_hour < 17:
         return "hero"
-    # Evening (5 PM - 8 PM PKT): Evening news / city developments
     elif 17 <= pkt_hour < 20:
         return "news"
-    # Prime-Time (8 PM - 10 PM PKT): Food & Culture discussion
     elif 20 <= pkt_hour < 22:
         return "culture"
-    # Late Night (10 PM+): Community discussion or hero tribute
     else:
         return "hero"
 

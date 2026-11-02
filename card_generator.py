@@ -1,165 +1,201 @@
 """
 Card Generator for Hamara Gujranwala Facebook Page.
-Generates 1080x1080 branded social media news & hero cards using Pillow.
-Optimized for high CTR, mobile readability, and viral Facebook sharing.
+Renders branded news cards using the official Hamara Gujranwala Template (1024x1024)
+and genuine Jameel Noori Nastaleeq Kasheeda calligraphy font.
 """
 
 import os
-import textwrap
+from datetime import datetime
+import arabic_reshaper
+from bidi.algorithm import get_display
 from PIL import Image, ImageDraw, ImageFont
 
+TEMPLATE_PATH = "assets/template.jpg"
+FONT_PATH = "assets/fonts/Jameel_Noori_Nastaleeq_Kasheeda.ttf"
+DEFAULT_PHOTO = "assets/sample_news_photo.jpg"
 
-def get_font(size=36, bold=False):
-    """
-    Load best available font across Windows and Linux (GitHub Actions).
-    Falls back gracefully to default PIL font.
-    """
-    candidate_fonts = [
-        "C:/Windows/Fonts/tahoma.ttf",
-        "C:/Windows/Fonts/arial.ttf",
-        "C:/Windows/Fonts/segoeui.ttf",
-        "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf" if bold else "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
-        "/usr/share/fonts/truetype/noto/NotoSans-Regular.ttf",
-        "tahoma.ttf",
-        "arial.ttf"
-    ]
-    for path in candidate_fonts:
-        try:
-            return ImageFont.truetype(path, size)
-        except Exception:
-            pass
+CREAM_BG = (251, 248, 233)
+DARK_GREEN = (6, 44, 26)
+PILL_GREEN = (42, 71, 53)
+GOLD_TEXT = (250, 204, 21)
+GOLD_BORDER = (202, 138, 4)
+DESC_TEXT = (35, 45, 55)
+
+
+def urdu(text):
+    """Reshape and reorder Urdu text for correct RTL Nastaleeq rendering."""
+    if not text:
+        return ""
     try:
-        return ImageFont.load_default()
+        reshaped = arabic_reshaper.reshape(text)
+        return get_display(reshaped)
     except Exception:
-        return None
+        return text
 
 
-def wrap_text_to_lines(text, max_chars=40):
-    """Wrap long text into manageable lines."""
-    return textwrap.wrap(text, width=max_chars)
+def wrap_urdu_lines(text, max_words=7):
+    """Split long Urdu text into balanced lines for headlines."""
+    words = text.strip().split()
+    if len(words) <= max_words:
+        return [text]
+    
+    mid = len(words) // 2
+    # Adjust break point
+    line1 = " ".join(words[:mid + (len(words) % 2)])
+    line2 = " ".join(words[mid + (len(words) % 2):])
+    return [line1, line2]
 
 
-def generate_news_card(title, source_name, category="BREAKING NEWS", output_path="card.png"):
+def generate_templated_news_card(
+    headline,
+    description,
+    category="بریکنگ نیوز",
+    photo_path=None,
+    date_str=None,
+    source_str="حوالہ: گوجرانوالہ پیج / ذرائع",
+    output_path="news_card.png"
+):
     """
-    Generate a branded breaking news card.
+    Renders an official, beautifully styled Hamara Gujranwala news card
+    using the official 1024x1024 template and Jameel Noori Nastaleeq Kasheeda.
     """
-    width = 1080
-    height = 1080
+    if not os.path.exists(TEMPLATE_PATH):
+        raise FileNotFoundError(f"Template image missing at {TEMPLATE_PATH}")
 
-    # Rich dark slate background with green gradient
-    img = Image.new("RGB", (width, height), color=(15, 23, 42))
+    img = Image.open(TEMPLATE_PATH).convert("RGB")
     draw = ImageDraw.Draw(img)
 
-    # Top Brand Banner
-    draw.rectangle([(0, 0), (width, 140)], fill=(20, 83, 45))  # Deep Pakistani Forest Green
-    draw.rectangle([(0, 135), (width, 140)], fill=(234, 179, 8))  # Golden Accent line
+    # Load Jameel Noori Nastaleeq Kasheeda font
+    if os.path.exists(FONT_PATH):
+        font_cat = ImageFont.truetype(FONT_PATH, 24)
+        font_hl = ImageFont.truetype(FONT_PATH, 40)
+        font_desc = ImageFont.truetype(FONT_PATH, 28)
+        font_meta = ImageFont.truetype(FONT_PATH, 22)
+    else:
+        # Fallback to default
+        font_cat = font_hl = font_desc = font_meta = ImageFont.load_default()
 
-    # Brand Title
-    font_brand = get_font(42, bold=True)
-    font_sub = get_font(24)
-    draw.text((50, 30), "HAMARA GUJRANWALA", fill=(255, 255, 255), font=font_brand)
-    draw.text((50, 85), "ہمارا گوجرانوالہ • باخبر گوجرانوالہ، بااختیار گوجرانوالہ", fill=(253, 224, 71), font=font_sub)
+    # 1. Category Pill
+    draw.rectangle([(405, 168), (620, 198)], fill=PILL_GREEN)
+    cat_t = urdu(category)
+    bbox = font_cat.getbbox(cat_t)
+    tw = bbox[2] - bbox[0]
+    draw.text((512 - tw // 2, 164), cat_t, font=font_cat, fill=GOLD_TEXT)
 
-    # Category Badge (Pill)
-    draw.rounded_rectangle([(50, 180), (380, 240)], radius=12, fill=(220, 38, 38))  # Red alert
-    font_badge = get_font(26, bold=True)
-    draw.text((70, 192), f"🚨 {category.upper()}", fill=(255, 255, 255), font=font_badge)
+    # 2. News Photo inside Green Arch Frame
+    img_to_use = photo_path if (photo_path and os.path.exists(photo_path)) else DEFAULT_PHOTO
+    if os.path.exists(img_to_use):
+        try:
+            photo = Image.open(img_to_use).convert("RGB")
+            target_w, target_h = 580, 315
 
-    # Main News Headline Box
-    draw.rounded_rectangle([(50, 270), (width - 50, 850)], radius=20, fill=(30, 41, 59), outline=(51, 65, 85), width=2)
+            # Resize & center crop to target dimensions
+            img_ratio = photo.width / photo.height
+            target_ratio = target_w / target_h
+            if img_ratio > target_ratio:
+                new_h = target_h
+                new_w = int(target_h * img_ratio)
+            else:
+                new_w = target_w
+                new_h = int(target_w / img_ratio)
+            photo = photo.resize((new_w, new_h), Image.Resampling.LANCZOS)
+            left = (new_w - target_w) // 2
+            top = (new_h - target_h) // 2
+            photo = photo.crop((left, top, left + target_w, top + target_h))
 
-    # News Title Text Wrapping
-    lines = wrap_text_to_lines(title, max_chars=36)
-    font_title = get_font(44, bold=True)
-    y_text = 330
-    line_spacing = 65
+            px = (1024 - target_w) // 2
+            py = 252
 
-    for line in lines[:7]:
-        draw.text((90, y_text), line, fill=(248, 250, 252), font=font_title)
-        y_text += line_spacing
+            # Golden border frame
+            draw.rectangle([(px - 3, py - 3), (px + target_w + 2, py + target_h + 2)], fill=GOLD_BORDER)
+            draw.rectangle([(px - 1, py - 1), (px + target_w, py + target_h)], fill=DARK_GREEN)
+            img.paste(photo, (px, py))
+        except Exception as e:
+            print(f"Notice: Failed to load photo: {e}")
 
-    # Verified Source Badge
-    draw.rounded_rectangle([(90, 750), (width - 90, 810)], radius=10, fill=(15, 23, 42))
-    font_meta = get_font(26)
-    draw.text((115, 765), f"📌 Verified Source: {source_name} | مصدقہ ذریعہ", fill=(148, 163, 184), font=font_meta)
+    # 3. Clean Template Placeholders with solid cream background
+    draw.rectangle([(75, 615), (949, 818)], fill=CREAM_BG)
+    draw.rectangle([(75, 830), (949, 878)], fill=CREAM_BG)
+    draw.rectangle([(105, 888), (360, 922)], fill=CREAM_BG)
+    draw.rectangle([(710, 888), (950, 922)], fill=CREAM_BG)
 
-    # Footer CTA Bar
-    draw.rectangle([(0, height - 120), (width, height)], fill=(15, 23, 42))
-    draw.line([(0, height - 120), (width, height - 120)], fill=(71, 85, 105), width=2)
+    # 4. Draw Headline in Jameel Noori Nastaleeq Kasheeda
+    lines = wrap_urdu_lines(headline, max_words=7)
+    if len(lines) == 1:
+        hl_text = urdu(lines[0])
+        b = font_hl.getbbox(hl_text)
+        tw = b[2] - b[0]
+        draw.text((512 - tw // 2, 675), hl_text, font=font_hl, fill=DARK_GREEN)
+    else:
+        y_positions = [638, 712]
+        for idx, line in enumerate(lines[:2]):
+            hl_text = urdu(line)
+            b = font_hl.getbbox(hl_text)
+            tw = b[2] - b[0]
+            draw.text((512 - tw // 2, y_positions[idx]), hl_text, font=font_hl, fill=DARK_GREEN)
 
-    font_cta = get_font(28, bold=True)
-    draw.text((50, height - 90), "👉 Follow 'Hamara Gujranwala' for real-time local updates!", fill=(250, 204, 21), font=font_cta)
-    draw.text((50, height - 50), "fb.com/HamaraGujranwalaOfficial", fill=(148, 163, 184), font=font_sub)
+    # 5. Draw Description
+    if description:
+        desc_text = urdu(description)
+        b = font_desc.getbbox(desc_text)
+        tw = b[2] - b[0]
+        draw.text((512 - tw // 2, 836), desc_text, font=font_desc, fill=DESC_TEXT)
+
+    # 6. Draw Date
+    if not date_str:
+        # Format today's date in Urdu
+        months_ur = [
+            "جنوری", "فروری", "مارچ", "اپریل", "مئی", "جون",
+            "جولائی", "اگست", "ستمبر", "اکتوبر", "نومبر", "دسمبر"
+        ]
+        now = datetime.now()
+        date_str = f"{now.day:02d} {months_ur[now.month - 1]} {now.year}ء"
+
+    date_t = urdu(date_str)
+    draw.text((115, 891), date_t, font=font_meta, fill=DARK_GREEN)
+
+    # 7. Draw Source
+    src_t = urdu(source_str)
+    b = font_meta.getbbox(src_t)
+    draw.text((935 - (b[2] - b[0]), 891), src_t, font=font_meta, fill=DARK_GREEN)
 
     os.makedirs(os.path.dirname(output_path) if os.path.dirname(output_path) else ".", exist_ok=True)
-    img.save(output_path, quality=92)
+    img.save(output_path, quality=95)
     return output_path
+
+
+# Backwards compatibility wrappers
+def generate_news_card(title, source_name, category="BREAKING NEWS", output_path="card.png", photo_path=None):
+    """Wrapper that routes to the official templated card generator."""
+    # Create natural Urdu headline and short description
+    desc = "تفصیلات اور تازہ ترین صورتحال جاننے کے لیے ہمارے پیج کو فالو کریں"
+    return generate_templated_news_card(
+        headline=title,
+        description=desc,
+        category="اہم خبر",
+        photo_path=photo_path,
+        source_str=f"حوالہ: {source_name}",
+        output_path=output_path
+    )
 
 
 def generate_hero_card(hero, output_path="hero_card.png"):
-    """
-    Generate a branded Gujranwala hero/heritage tribute card.
-    """
-    width = 1080
-    height = 1080
-
-    # Rich dark royal blue / gold themed card
-    img = Image.new("RGB", (width, height), color=(10, 15, 30))
-    draw = ImageDraw.Draw(img)
-
-    # Top Brand Header
-    draw.rectangle([(0, 0), (width, 140)], fill=(14, 116, 144))  # Rich Teal / Blue
-    draw.rectangle([(0, 135), (width, 140)], fill=(250, 204, 21))  # Golden accent
-
-    font_brand = get_font(40, bold=True)
-    font_sub = get_font(24)
-    draw.text((50, 30), "HAMARA GUJRANWALA | ہمارا گوجرانوالہ", fill=(255, 255, 255), font=font_brand)
-    draw.text((50, 85), "گوجرانوالہ کے ہیرو اور قابلِ فخر تاریخی روایات", fill=(253, 224, 71), font=font_sub)
-
-    # Hero Badge Pill
-    badge_text = hero.get("badge", "🌟 GUJRANWALA HERO")
-    draw.rounded_rectangle([(50, 180), (520, 240)], radius=12, fill=(202, 138, 4))
-    font_badge = get_font(26, bold=True)
-    draw.text((70, 192), badge_text, fill=(255, 255, 255), font=font_badge)
-
-    # Main Story Card
-    draw.rounded_rectangle([(50, 270), (width - 50, 860)], radius=20, fill=(23, 37, 84), outline=(30, 58, 138), width=2)
-
-    # Hero Name English & Urdu
-    font_name = get_font(48, bold=True)
-    draw.text((90, 320), hero["name_en"], fill=(255, 255, 255), font=font_name)
-    
-    font_tagline = get_font(32)
-    draw.text((90, 390), hero.get("tagline", ""), fill=(253, 224, 71), font=font_tagline)
-
-    # Story Text
-    font_body = get_font(30)
-    lines = wrap_text_to_lines(hero["story_en"], max_chars=44)
-    y_text = 460
-    for line in lines[:5]:
-        draw.text((90, y_text), line, fill=(226, 232, 240), font=font_body)
-        y_text += 46
-
-    # Highlight Pill
-    draw.rounded_rectangle([(90, 740), (width - 90, 820)], radius=12, fill=(15, 23, 42))
-    font_q = get_font(25, bold=True)
-    draw.text((110, 765), "💬 Join the discussion: What makes you proud of Gujranwala?", fill=(250, 204, 21), font=font_q)
-
-    # Bottom Footer
-    draw.rectangle([(0, height - 120), (width, height)], fill=(10, 15, 30))
-    draw.line([(0, height - 120), (width, height - 120)], fill=(51, 65, 85), width=2)
-    font_cta = get_font(28, bold=True)
-    draw.text((50, height - 80), "👉 Follow 'Hamara Gujranwala' • The Pride of Punjab", fill=(255, 255, 255), font=font_cta)
-
-    os.makedirs(os.path.dirname(output_path) if os.path.dirname(output_path) else ".", exist_ok=True)
-    img.save(output_path, quality=92)
-    return output_path
+    """Wrapper for hero tributes using the official template."""
+    return generate_templated_news_card(
+        headline=f"{hero['name_ur']}: گوجرانوالہ کا تاریخی اعزاز",
+        description=hero.get("tagline", "پہلوانوں اور تاریخی ہیروز کا عظیم شہر"),
+        category="گوجرانوالہ کا فخر",
+        photo_path=None,
+        source_str="حوالہ: ہمارا گوجرانوالہ",
+        output_path=output_path
+    )
 
 
 if __name__ == "__main__":
-    card1 = generate_news_card(
-        "Prime suspect in Gujranwala bride murder case apprehended in joint police operation",
-        "Dawn News",
-        output_path="test_news_card.png"
+    out = generate_templated_news_card(
+        headline="گوجرانوالہ میں سموگ اور فضائی آلودگی کے خلاف بڑا ایکشن",
+        description="ضلعی انتظامیہ کی جانب سے شہریوں کی صحت اور ماحول کے تحفظ کے لیے سخت احکامات جاری",
+        category="اہم خبر",
+        output_path="test_templated_card.png"
     )
-    print("Generated news card:", card1)
+    print("Generated:", out)
