@@ -2,15 +2,14 @@ name: Hamara Gujranwala Facebook Autonomous Manager
 
 on:
   schedule:
-    # 7 Peak Pakistan Timed Slots (5 to 7 posts daily):
-    # 03:30 UTC = 08:30 AM PKT (Morning News & Weather)
-    # 06:30 UTC = 11:30 AM PKT (Midday Real-Time Breaking News)
-    # 09:30 UTC = 02:30 PM PKT (Afternoon Spot News / City Updates)
-    # 12:30 UTC = 05:30 PM PKT (Hero Tribute & Wrestling Pride)
-    # 14:30 UTC = 07:30 PM PKT (Evening Prime Updates)
-    # 16:30 UTC = 09:30 PM PKT (Prime Food & Cultural Feature)
-    # 17:30 UTC = 10:30 PM PKT (Community Discussion & Engagement)
-    - cron: '30 3,6,9,12,14,16,17 * * *'
+    # 7 Independent Peak Daily Slots across Pakistan Standard Time (PKT):
+    - cron: '30 3 * * *'   # 08:30 AM PKT (Morning News & Weather)
+    - cron: '30 6 * * *'   # 11:30 AM PKT (Midday Breaking News)
+    - cron: '30 9 * * *'   # 02:30 PM PKT (Afternoon Spot News)
+    - cron: '30 12 * * *'  # 05:30 PM PKT (Hero Tribute & Wrestling Pride)
+    - cron: '30 14 * * *'  # 07:30 PM PKT (Evening Prime News)
+    - cron: '30 16 * * *'  # 09:30 PM PKT (Food & Cultural Heritage)
+    - cron: '30 17 * * *'  # 10:30 PM PKT (Community Discussion)
 
   workflow_dispatch:
     inputs:
