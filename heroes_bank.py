@@ -212,9 +212,12 @@ def get_hero_by_index(index):
 
 
 def get_unposted_hero(history_ids):
-    """Find a hero that hasn't been posted recently."""
-    for hero in HEROES_AND_HERITAGE:
-        if hero["id"] not in history_ids:
-            return hero
-    # If all posted, cycle back
-    return HEROES_AND_HERITAGE[0]
+    """Find a hero that hasn't been posted recently, cycling evenly through all heroes."""
+    unposted = [h for h in HEROES_AND_HERITAGE if h["id"] not in history_ids]
+    if unposted:
+        return unposted[0]
+
+    # If all have been posted, cycle through the one posted least frequently
+    hist_list = list(history_ids)
+    sorted_heroes = sorted(HEROES_AND_HERITAGE, key=lambda h: hist_list.count(h["id"]))
+    return sorted_heroes[0]

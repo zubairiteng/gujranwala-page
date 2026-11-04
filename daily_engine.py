@@ -1,3 +1,4 @@
+from urdu_news_engine import craft_urdu_news_package
 """
 Main Autonomous Execution Engine for Hamara Gujranwala Facebook Page.
 Executes scheduled posting slots using the official Hamara Gujranwala 1024x1024 Template
@@ -83,17 +84,23 @@ def run_news_post(poster):
     date_str = get_urdu_date()
     source_str = f"حوالہ: گوجرانوالہ پیج / {item['source']}"
 
-    # Generate card using official template and Jameel Noori Nastaleeq Kasheeda
+    # Generate complete Urdu news package (Urdu headline, description, category, matched photo, and caption)
+    pkg = craft_urdu_news_package(item)
+    headline = pkg["headline_ur"]
+    description = pkg["desc_ur"]
+    category = pkg["category_ur"]
+    photo_path = pkg["photo_path"]
+    caption = pkg["caption"]
+
     generate_templated_news_card(
-        headline=item["title"],
-        description="تفصیلات اور لمحہ بہ لمحہ خبروں کے لیے ہمارے پیج کو فالو کریں",
-        category="اہم خبر",
+        headline=headline,
+        description=description,
+        category=category,
+        photo_path=photo_path,
         date_str=date_str,
         source_str=source_str,
         output_path=temp_card
     )
-
-    caption = format_news_post(item)
     res = poster.post_photo(temp_card, caption)
 
     if os.path.exists(temp_card):
@@ -229,15 +236,17 @@ def determine_auto_action():
     print(f"🕒 Current Pakistan Time: {get_pkt_now().strftime('%Y-%m-%d %I:%M %p PKT')} (Hour: {pkt_hour})")
 
     if 7 <= pkt_hour < 11:
-        return "news"
+        return "news"       # Morning News & Weather
     elif 11 <= pkt_hour < 14:
-        return "news"
-    elif 14 <= pkt_hour < 17:
-        return "hero"
-    elif 17 <= pkt_hour < 20:
-        return "news"
-    elif 20 <= pkt_hour < 22:
-        return "culture"
+        return "news"       # Midday Real-Time News
+    elif 14 <= pkt_hour < 16:
+        return "hero"       # Afternoon Gujranwala Legends
+    elif 16 <= pkt_hour < 19:
+        return "news"       # Late Afternoon / Spot News
+    elif 19 <= pkt_hour < 21:
+        return "culture"    # Prime Food & Heritage
+    elif 21 <= pkt_hour < 23:
+        return "news"       # Night News Wrap
     else:
         return "hero"
 
