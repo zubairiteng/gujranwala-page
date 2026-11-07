@@ -126,7 +126,7 @@ def run_hero_post(poster):
     """Select a Gujranwala hero, generate tribute card on official template, and publish."""
     print("🌟 Selecting Gujranwala hero/legend tribute...")
     history = load_history()
-    posted_heroes = set(history.get("posted_heroes", []))
+    posted_heroes = history.get("posted_heroes", [])
 
     hero = get_unposted_hero(posted_heroes)
     print(f"🏆 Selected Hero: {hero['name_ur']} ({hero['name_en']})")
@@ -162,8 +162,9 @@ def run_culture_post(poster):
     temp_card = "temp_culture_card.png"
     generate_templated_news_card(
         headline="گوجرانوالہ کے روایتی کھانے اور ثقافتی پہچان",
-        description="چراغ کے تکے، کھیا علی گیٹ کی لسی اور دال بازار کا لذیذ ذائقہ",
+        description="چراغ کے روایتی کباب و تکے، کھیا علی گیٹ کی لسی اور دال بازار کے چٹپٹے ذائقے، جن کی لذت کے دیوانے پورے ملک سے گوجرانوالہ کا رخ کرتے ہیں",
         category="ذائقہ گوجرانوالہ کا",
+        photo_path="assets/photos/food_heritage.jpg",
         date_str=get_urdu_date(),
         source_str="حوالہ: ہمارا گوجرانوالہ",
         output_path=temp_card

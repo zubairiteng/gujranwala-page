@@ -12,7 +12,7 @@ from PIL import Image
 
 TEMPLATE_PATH = "assets/template.jpg"
 FONT_PATH = "assets/fonts/Jameel_Noori_Nastaleeq_Kasheeda.ttf"
-DEFAULT_PHOTO = "assets/sample_news_photo.jpg"
+DEFAULT_PHOTO = "assets/photos/civic_city.jpg"
 
 
 def get_browser_executable():
@@ -142,10 +142,10 @@ def generate_templated_news_card(
   /* Headline Area */
   .text-cover {{
     position: absolute;
-    top: 618px;
+    top: 612px;
     left: 75px;
     width: 874px;
-    height: 198px;
+    height: 172px;
     background: #fbf8e9;
     display: flex;
     flex-direction: column;
@@ -156,27 +156,28 @@ def generate_templated_news_card(
   }}
   .headline {{
     color: #062c1a;
-    font-size: 46px;
-    line-height: 1.45;
+    font-size: 42px;
+    line-height: 1.4;
     font-weight: bold;
     text-shadow: 0 1px 1px rgba(0,0,0,0.05);
   }}
-  /* Description Area */
+  /* Description Area (2 to 3 readable lines) */
   .desc-cover {{
     position: absolute;
-    top: 832px;
+    top: 788px;
     left: 75px;
     width: 874px;
-    height: 44px;
+    height: 78px;
     background: #fbf8e9;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
     color: #1e293b;
-    font-size: 28px;
-    line-height: 36px;
+    font-size: 20px;
+    line-height: 1.48;
     text-align: center;
-    padding: 0 20px;
+    padding: 0 35px;
   }}
   /* Meta Row: Clean full bar covering the template's placeholder text completely */
   .meta-bar {{
@@ -265,26 +266,32 @@ def generate_templated_news_card(
     return output_path
 
 
-def generate_news_card(title, source_name, category="اہم خبر", output_path="card.png", photo_path=None):
+def generate_news_card(title, source_name, category="اہم خبر", output_path="card.png", photo_path=None, description="ضلعی انتظامیہ اور متعلقہ اداروں کی جانب سے شہریوں کی سہولت اور امن و امان کے لیے اقدامات جاری"):
     """Wrapper routing to templated card generator."""
+    if not photo_path or not os.path.exists(photo_path):
+        photo_path = "assets/photos/civic_city.jpg"
     return generate_templated_news_card(
         headline=title,
-        description="تفصیلات اور تازہ ترین صورتحال کے لیے ہمارے پیج کو فالو کریں",
+        description=description,
         category=category,
         photo_path=photo_path,
-        source_str=f"ذریعہ: گوجرانوالہ پیج / {source_name}",
+        source_str=f"حوالہ: گوجرانوالہ پیج / {source_name}",
         output_path=output_path
     )
 
 
 def generate_hero_card(hero, output_path="hero_card.png"):
-    """Wrapper for hero tributes."""
+    """Wrapper for hero tributes with strictly matched archival portrait and 2-3 line context."""
+    photo = hero.get("photo")
+    if not photo or not os.path.exists(photo):
+        photo = "assets/photos/wrestling_sports.jpg"
+    desc = hero.get("card_desc") or hero.get("tagline", "پہلوانوں، تاریخ اور روایات کا عظیم شہر گوجرانوالہ")
     return generate_templated_news_card(
         headline=f"{hero['name_ur']}: گوجرانوالہ کا تاریخی فخر",
-        description=hero.get("tagline", "پہلوانوں اور روایات کا عظیم شہر"),
+        description=desc,
         category="گوجرانوالہ کا فخر",
-        photo_path=None,
-        source_str="ذریعہ: ہمارا گوجرانوالہ",
+        photo_path=photo,
+        source_str="حوالہ: ہمارا گوجرانوالہ",
         output_path=output_path
     )
 

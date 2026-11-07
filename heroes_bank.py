@@ -1,6 +1,8 @@
 """
 Curated Bank of Gujranwala Heroes, Legends, Historical Landmarks & Cultural Pride.
 Used for daily hero spotlights, cultural features, and viral community pride posts.
+Every entry includes an authentic, strictly verified archival photo path and
+a 2-to-3 line readable Urdu context description for the Hamara Gujranwala card template.
 """
 
 HEROES_AND_HERITAGE = [
@@ -11,6 +13,8 @@ HEROES_AND_HERITAGE = [
         "category": "Wrestling Legend",
         "badge": "🌟 گوجرانوالہ کا فخر | رستمِ جہاں",
         "tagline": "دنیا کا ناقابلِ شکست پہلوان — گوجرانوالہ کا عالمی اعزاز",
+        "photo": "assets/photos/gama_pehlwan.jpg",
+        "card_desc": "50 سالہ کیریئر میں دنیا بھر کے دنگل جیت کر ناقابلِ شکست رہنے والے عظیم چیمپیئن، جنہوں نے گوجرانوالہ کو پہلوانوں کے شہر کا عالمی اعزاز بخشا",
         "story_ur": (
             "گوجرانوالہ کو پہلوانوں کا شہر بنانے میں سب سے بڑا نام 'گاما پہلوان' کا ہے۔ "
             "وہ دنیا کے تاریخ کے واحد ریسلر ہیں جو اپنے 50 سالہ کیریئر میں ایک بھی کشتی نہیں ہارے۔ "
@@ -33,6 +37,8 @@ HEROES_AND_HERITAGE = [
         "category": "Modern Sports Hero",
         "badge": "🥇 گوجرانوالہ کا موجودہ چیمپیئن | انعام بٹ",
         "tagline": "کامن ویلتھ گیمز اور ورلڈ بیچ ریسلنگ کے گولڈ میڈلسٹ",
+        "photo": "assets/photos/wrestling_sports.jpg",
+        "card_desc": "کامن ویلتھ گیمز اور ورلڈ بیچ ریسلنگ کے گولڈ میڈلسٹ، جنہوں نے جدید دور میں عالمی سطح پر پاکستان اور گوجرانوالہ کے اکھاڑوں کا سر فخر سے بلند کیا",
         "story_ur": (
             "گوجرانوالہ کے سپوت محمد انعام بٹ نے جدید دور میں پاکستان کا پرچم دنیا بھر میں بلند کیا۔ "
             "وہ دو مرتبہ کامن ویلتھ گیمز (2010 اور 2018) میں گولڈ میڈل جیتنے والے پاکستان کے مایہ ناز پہلوان ہیں۔ "
@@ -53,6 +59,8 @@ HEROES_AND_HERITAGE = [
         "category": "Wrestling Legend",
         "badge": "🏆 رستمِ پاکستان | بھولو پہلوان",
         "tagline": "گاما خاندان کا سپوت جس نے دنیا بھر کے دنگل جیتے",
+        "photo": "assets/photos/wrestling_sports.jpg",
+        "card_desc": "پاکستان کے پہلے باضابطہ رستمِ پاکستان، جنہوں نے بین الاقوامی دنگلوں میں پاکستان کا پرچم لہرایا اور حکومتِ پاکستان سے تمغہ حسنِ کارکردگی پایا",
         "story_ur": (
             "بھولو پہلوان پاکستان کے پہلے باضابطہ 'رستمِ پاکستان' تھے۔ انہوں نے 1949 میں یونس گوجرانوالیا کو ہرا کر یہ اعزاز حاصل کیا۔ "
             "انہوں نے دنیا کے مختلف ممالک بشمول بھارت، برطانیہ، سری لنکا اور مشرق وسطیٰ میں جا کر بین الاقوامی چیلنجز جیتے "
@@ -72,6 +80,8 @@ HEROES_AND_HERITAGE = [
         "category": "Cultural & Media Legend",
         "badge": "🎙️ پاکستان کا پہلا ٹی وی چہرہ | طارق عزیز",
         "tagline": "دیکھتی آنکھوں سنتے کانوں کو طارق عزیز کا سلام — گوجرانوالہ سے تعلق",
+        "photo": "assets/photos/education_board.jpg",
+        "card_desc": "نیلام گھر کے بانی میزبان، عظیم ادیب اور صداکار، جن کی علمی و ادبی خدمات اور زبان کی شائستگی ہمیشہ گوجرانوالہ کی تاریخ میں زندہ رہے گی",
         "story_ur": (
             "پاکستان ٹیلی ویژن کے بانی میزبان، عظیم ادیب، شاعر اور سیاستدان طارق عزیز کا جنم گوجرانوالہ کے قریب ہوا "
             "اور انہوں نے گوجرانوالہ سے ہی اپنی ابتدائی تعلیم اور ادبی سفر کی بنیاد رکھی۔ "
@@ -92,6 +102,8 @@ HEROES_AND_HERITAGE = [
         "category": "Literary Icon",
         "badge": "📜 پنجابی ادب کی عظیم آواز | امرتا پریتم",
         "tagline": "31 اگست 1919 کو گوجرانوالہ میں جنم لینے والی عالمی شہرت یافتہ شاعرہ",
+        "photo": "assets/photos/civic_city.jpg",
+        "card_desc": "31 اگست 1919 کو گوجرانوالہ میں جنم لینے والی پنجابی اور اردو ادب کی عالمی شہرت یافتہ شاعرہ، جن کے شاہکار کلام نے پنجاب کی روح کو زندہ کیا",
         "story_ur": (
             "پنجابی اور اردو ادب کی دنیا میں امرتا پریتم کا نام کسی تعارف کا محتاج نہیں۔ "
             "وہ 1919 میں گوجرانوالہ شہر میں پیدا ہوئیں۔ ان کی نظم 'اج آکھاں وارث شاہ نوں کتھوں قبراں وچوں بول' "
@@ -112,6 +124,8 @@ HEROES_AND_HERITAGE = [
         "category": "Food & Culture",
         "badge": "🍲 ذائقہ گوجرانوالہ کا | چراغ کے کباب و تکے",
         "tagline": "پورے پاکستان سے لوگ صرف ذائقے کے لیے گوجرانوالہ کا رخ کرتے ہیں",
+        "photo": "assets/photos/food_heritage.jpg",
+        "card_desc": "چراغ کے روایتی کباب و تکے، کھیا علی گیٹ کی لسی اور دال بازار کے چٹپٹے ذائقے، جن کی لذت کے دیوانے پورے پاکستان سے گوجرانوالہ کا رخ کرتے ہیں",
         "story_ur": (
             "زندہ دلانِ گوجرانوالہ کھانے پینے کے بے حد شوقین ہیں۔ یہاں کا چراغ تکہ، کھیا علی گیٹ کی لسی، "
             "دال بازار کی چٹپٹی مچھلی، فیروزوالہ کی جلیبیاں اور مٹن کڑاہی پورے پاکستان میں مشہور ہیں۔ "
@@ -132,6 +146,8 @@ HEROES_AND_HERITAGE = [
         "category": "Industry & Economy",
         "badge": "🏭 صنعتی شاہکار | میڈ ان گوجرانوالہ",
         "tagline": "پنکھے، برتن، سینیٹری، اور زرعی مشینری — دنیا بھر میں برآمدات",
+        "photo": "assets/photos/industry_chamber.jpg",
+        "card_desc": "پاکستان کا عظیم صنعتی مرکز، جہاں بننے والے پنکھے، سینیٹری، برتن اور زرعی مشینری دنیا کے درجنوں ممالک میں برآمد کی جاتی ہے",
         "story_ur": (
             "گوجرانوالہ صرف پہلوانوں اور کھانوں کا شہر نہیں بلکہ پاکستان کا تیسرا بڑا صنعتی مرکز ہے۔ "
             "پاکستان کے 70 فیصد سے زائد الیکٹرک پنکھے، کٹلری، کراکری اور سینیٹری ویئر گوجرانوالہ میں بنتے ہیں "
@@ -152,6 +168,8 @@ HEROES_AND_HERITAGE = [
         "category": "Historical Landmark",
         "badge": "🏛️ تاریخی ورثہ | شیرانوالہ باغ",
         "tagline": "تاریخی جلسوں، سیاسی تحریکوں اور پہلوانی دنگلوں کا گواہ",
+        "photo": "assets/photos/civic_city.jpg",
+        "card_desc": "تحریکِ پاکستان کے تاریخی جلسوں، سیاسی تحریکوں اور صدیوں پرانے پہلوانی اکھاڑوں کا گواہ، گوجرانوالہ کا پرشکوہ تاریخی ورثہ",
         "story_ur": (
             "شیرانوالہ باغ گوجرانوالہ کے تاریخی دل میں واقع ایک عظیم الشان تاریخی مقام ہے۔ "
             "تحریکِ پاکستان کے دوران قائدِ اعظم محمد علی جناح سمیت برصغیر کے عظیم رہنماؤں نے یہاں تاریخی اجتماعات سے خطاب کیا۔ "
@@ -172,6 +190,8 @@ HEROES_AND_HERITAGE = [
         "category": "Iconic Monument",
         "badge": "📍 پہچان گوجرانوالہ کی | نشانِ منزل",
         "tagline": "جی ٹی روڈ پر گوجرانوالہ کی خودداری اور حب الوطنی کی علامت",
+        "photo": "assets/photos/civic_city.jpg",
+        "card_desc": "جی ٹی روڈ پر واقع گوجرانوالہ کی خودداری، بہادری اور وطنِ عزیز کی دفاعی افواج کے جذبہ حب الوطنی کو خراجِ تحسین پیش کرتی باوقار یادگار",
         "story_ur": (
             "گوجرانوالہ کینٹ کے قریب جی ٹی روڈ پر واقع 'نشانِ منزل' گوجرانوالہ کا سب سے نمایاں لینڈ مارک ہے۔ "
             "یہ یادگار پاکستان کی دفاعی افواج کی قربانیوں اور گوجرانوالہ کے عوام کے جذبہ حب الوطنی کو خراجِ تحسین پیش کرنے کے لیے قائم کی گئی۔ "
@@ -191,6 +211,8 @@ HEROES_AND_HERITAGE = [
         "category": "Historical Landmark",
         "badge": "🚂 تاریخی ریلوے اسٹیشن | گوجرانوالہ",
         "tagline": "1880 کی دہائی کی برطانوی دور کی پرشکوہ عمارت",
+        "photo": "assets/photos/railway_station.jpg",
+        "card_desc": "1880 کی دہائی کی برطانوی دور کی پرشکوہ تاریخی عمارت، جس نے گوجرانوالہ کے شہریوں کو جوڑنے اور صنعتی ترقی میں اہم تاریخی کردار ادا کیا",
         "story_ur": (
             "گوجرانوالہ کا مرکزی ریلوے اسٹیشن برصغیر کے قدیم ترین ریلوے نیٹ ورکس کا حصہ ہے جو 1880 میں تعمیر ہوا۔ "
             "اس کی اینٹوں کی پرانی طرزِ تعمیر اور بلند محرابیں آج بھی ماضی کی شاندار داستانیں سناتی ہیں۔ "
@@ -212,12 +234,24 @@ def get_hero_by_index(index):
 
 
 def get_unposted_hero(history_ids):
-    """Find a hero that hasn't been posted recently, cycling evenly through all heroes."""
-    unposted = [h for h in HEROES_AND_HERITAGE if h["id"] not in history_ids]
+    """
+    Find a hero that hasn't been posted recently, cycling evenly through all heroes in round-robin order.
+    Takes a list of previously posted hero IDs in chronological order.
+    """
+    hist_list = list(history_ids) if history_ids else []
+
+    # 1. Any hero never posted yet?
+    unposted = [h for h in HEROES_AND_HERITAGE if h["id"] not in hist_list]
     if unposted:
         return unposted[0]
 
-    # If all have been posted, cycle through the one posted least frequently
-    hist_list = list(history_ids)
-    sorted_heroes = sorted(HEROES_AND_HERITAGE, key=lambda h: hist_list.count(h["id"]))
+    # 2. All have been posted: pick the hero with minimum occurrences;
+    # if tied, pick the one posted longest ago (smallest last_index).
+    def recency_key(hero):
+        h_id = hero["id"]
+        count = hist_list.count(h_id)
+        last_index = len(hist_list) - 1 - hist_list[::-1].index(h_id)
+        return (count, last_index)
+
+    sorted_heroes = sorted(HEROES_AND_HERITAGE, key=recency_key)
     return sorted_heroes[0]

@@ -56,6 +56,13 @@ PROHIBITED_KEYWORDS = [
     "cybercrime",
     "fraud scheme",
     "gambling",
+    "music single",
+    "music video",
+    "song release",
+    "track release",
+    "album release",
+    "bollywood",
+    "hollywood",
 ]
 
 # News Search Keywords & Geographic Scope
