@@ -1,16 +1,19 @@
 """
 Card Generator for Hamara Gujranwala Facebook Page.
-Renders branded news cards using the official Hamara Gujranwala Template (1024x1024)
-and genuine Jameel Noori Nastaleeq Kasheeda typography via headless browser engine.
+Renders branded news cards using the official Hamara Gujranwala V2 Template (1024x1024)
+featuring large, high-readability typography in Jameel Noori Nastaleeq Kasheeda,
+a centered 914x254 photo frame, 3 structured bullet description lines,
+and dynamic reference & date metadata.
 """
 
 import os
+import re
 import shutil
 import subprocess
 from datetime import datetime
 from PIL import Image
 
-TEMPLATE_PATH = "assets/template.jpg"
+TEMPLATE_PATH = "assets/template_v2_clean.png"
 FONT_PATH = "assets/fonts/Jameel_Noori_Nastaleeq_Kasheeda.ttf"
 DEFAULT_PHOTO = "assets/photos/civic_city.jpg"
 
@@ -47,18 +50,42 @@ def get_urdu_date(dt=None):
     return f"{d.day:02d} {months_ur[d.month - 1]} {d.year}ء"
 
 
+def format_description_to_bullet_lines(description):
+    """
+    Convert raw description string or list into exactly 2 to 3
+    high-impact, bulleted Urdu Nastaleeq lines.
+    """
+    if isinstance(description, list):
+        clean_lines = [line.strip().lstrip("-• ") for line in description if line.strip()]
+    elif isinstance(description, str):
+        if "\n" in description:
+            clean_lines = [l.strip().lstrip("-• ") for l in description.split("\n") if l.strip()]
+        elif "۔" in description:
+            clean_lines = [s.strip().lstrip("-• ") + "۔" for s in description.split("۔") if s.strip()]
+        elif "،" in description and len(description.split("،")) >= 3:
+            clean_lines = [p.strip().lstrip("-• ") for p in description.split("،") if p.strip()]
+        else:
+            clean_lines = [description.strip().lstrip("-• ")]
+    else:
+        clean_lines = ["ضلعی انتظامیہ کی جانب سے شہریوں کی سہولت اور امن و امان کے لیے اقدامات جاری۔"]
+
+    # Keep at most 3 clear lines
+    clean_lines = clean_lines[:3]
+    return clean_lines
+
+
 def generate_templated_news_card(
     headline,
-    description="ضلعی انتظامیہ کی جانب سے شہریوں کے تحفظ اور امن و امان کے لیے اقدامات جاری",
-    category="اہم خبر",
+    description="ضلعی انتظامیہ کی جانب سے شہریوں کے تحفظ اور امن و امان کے لیے اقدامات جاری۔",
+    category="شہر کی خبریں",
     photo_path=None,
     date_str=None,
-    source_str="حوالہ: گوجرانوالہ پیج / ذرائع",
+    source_str="حوالہ: مستند خبر کا ذریعہ",
     output_path="news_card.png"
 ):
     """
-    Renders the official 1024x1024 news card with exact typography
-    in Jameel Noori Nastaleeq Kasheeda.
+    Renders the official 1024x1024 Hamara Gujranwala V2 card with
+    enlarged, crystal-clear Jameel Noori Nastaleeq Kasheeda typography.
     """
     browser_exe = get_browser_executable()
     if not browser_exe:
@@ -66,23 +93,37 @@ def generate_templated_news_card(
 
     template_abs = os.path.abspath(TEMPLATE_PATH).replace("\\", "/")
     font_abs = os.path.abspath(FONT_PATH).replace("\\", "/")
-    
+
     photo_to_use = photo_path if (photo_path and os.path.exists(photo_path)) else DEFAULT_PHOTO
     photo_abs = os.path.abspath(photo_to_use).replace("\\", "/")
 
     if not date_str:
-        now = datetime.now()
-        date_str = f"🗓️ {now.day:02d} {now.strftime('%b %Y')}"
-    elif not date_str.startswith("🗓️"):
-        date_str = f"🗓️ {date_str}"
+        date_str = f"تاریخ: {get_urdu_date()}"
+    elif not date_str.startswith("تاریخ:"):
+        date_str = f"تاریخ: {date_str.lstrip('🗓️ ')}"
 
-    if not source_str.startswith("📷"):
-        source_str = f"📷 {source_str}"
+    if not source_str:
+        source_str = "حوالہ: مستند خبر کا ذریعہ"
+    elif not source_str.startswith("حوالہ:"):
+        source_str = f"حوالہ: {source_str.lstrip('📷 ')}"
+
+    # Dynamic headline sizing for optimal fill and zero clipping
+    words = len(headline.split())
+    if words > 14:
+        h_size = 48
+    elif words > 10:
+        h_size = 52
+    else:
+        h_size = 56
+
+    # Format 2 to 3 bullet description lines
+    lines = format_description_to_bullet_lines(description)
+    desc_html = "".join([f'<div class="desc-line">- {l}</div>' for l in lines])
 
     html_content = f"""<!DOCTYPE html>
 <html>
 <head>
-<meta charset='utf-8'>
+<meta charset="utf-8">
 <style>
   @font-face {{
     font-family: 'JameelKasheeda';
@@ -100,128 +141,114 @@ def generate_templated_news_card(
     position: relative;
     background-image: url('file:///{template_abs}');
     background-size: 1024px 1024px;
-    font-family: 'JameelKasheeda', 'Noto Nastaliq Urdu', 'Segoe UI', Tahoma, sans-serif;
+    font-family: 'JameelKasheeda', 'Noto Nastaliq Urdu', Tahoma, sans-serif;
     direction: rtl;
     -webkit-font-smoothing: antialiased;
   }}
-  /* Category Pill */
-  .category-pill {{
+  
+  /* Top Headline Box: Huge, bold, centered in navy blue */
+  .headline-box {{
     position: absolute;
-    top: 168px;
-    left: 405px;
-    width: 214px;
-    height: 30px;
-    background: #2a4735;
-    border-radius: 12px;
+    top: 96px;
+    left: 45px;
+    width: 934px;
+    height: 236px;
     display: flex;
-    align-items: center;
     justify-content: center;
-    color: #fde047;
-    font-size: 24px;
-    line-height: 30px;
+    align-items: center;
     text-align: center;
-    padding-bottom: 4px;
+    padding: 0 25px;
   }}
-  /* Photo Frame in Green Arch */
+  .headline {{
+    color: #07193b;
+    font-size: {h_size}px;
+    line-height: 1.34;
+    font-weight: bold;
+    text-shadow: 0 1px 1px rgba(0,0,0,0.06);
+  }}
+  
+  /* Center Photo Frame: 914 x 254 px */
   .photo-frame {{
     position: absolute;
-    top: 250px;
-    left: 222px;
-    width: 580px;
-    height: 315px;
-    border: 3px solid #ca8a04;
-    border-radius: 8px;
+    top: 366px;
+    left: 55px;
+    width: 914px;
+    height: 254px;
+    border-radius: 6px;
     overflow: hidden;
-    background: #062c1a;
+    background: #07193b;
   }}
   .photo-frame img {{
     width: 100%;
     height: 100%;
     object-fit: cover;
   }}
-  /* Content Box: Unified container for headline and description with enlarged, high-readability typography */
-  .content-box {{
+  
+  /* Description Area: 2-3 readable bullet lines */
+  .desc-box {{
     position: absolute;
-    top: 608px;
-    left: 70px;
-    width: 884px;
-    height: 258px;
-    background: #fbf8e9;
+    top: 636px;
+    left: 50px;
+    width: 924px;
+    height: 216px;
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: space-evenly;
     align-items: center;
     text-align: center;
-    padding: 6px 30px;
-    gap: 10px;
+    padding: 0 10px;
   }}
-  .headline {{
-    color: #062c1a;
-    font-size: 48px;
-    line-height: 1.32;
-    font-weight: bold;
-    text-shadow: 0 1px 1px rgba(0,0,0,0.05);
-  }}
-  .description {{
-    color: #1e293b;
-    font-size: 27px;
-    line-height: 1.44;
+  .desc-line {{
+    color: #0c1b33;
+    font-size: 28px;
+    line-height: 1.45;
     font-weight: 500;
   }}
-  /* Meta Row: Clean full bar covering the template's placeholder text completely */
+  
+  /* Meta Row: Source (Left) & Date (Right) above bottom bar */
   .meta-bar {{
     position: absolute;
-    top: 868px;
+    top: 864px;
     left: 55px;
     width: 914px;
-    height: 70px;
-    background: #fbf8e9;
+    height: 60px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0 10px;
-    box-sizing: border-box;
     direction: ltr;
-  }}
-  .meta-date {{
-    display: flex;
-    align-items: center;
-    color: #062c1a;
-    font-size: 21px;
-    font-family: 'Segoe UI', Tahoma, 'JameelKasheeda', sans-serif;
-    font-weight: 600;
-    direction: ltr;
-    padding-left: 10px;
   }}
   .meta-source {{
-    display: flex;
-    align-items: center;
-    color: #062c1a;
-    font-size: 23px;
-    font-family: 'JameelKasheeda', 'Noto Nastaliq Urdu', Tahoma, sans-serif;
+    color: #07193b;
+    font-size: 26px;
     font-weight: bold;
     direction: rtl;
-    padding-right: 10px;
+  }}
+  .meta-date {{
+    color: #07193b;
+    font-size: 26px;
+    font-weight: bold;
+    direction: rtl;
   }}
 </style>
 </head>
 <body>
-  <div class='category-pill'>{category}</div>
-  <div class='photo-frame'>
-    <img src='file:///{photo_abs}'>
+  <div class="headline-box">
+    <div class="headline">{headline}</div>
   </div>
-  <div class='content-box'>
-    <div class='headline'>{headline}</div>
-    <div class='description'>{description}</div>
+  <div class="photo-frame">
+    <img src="file:///{photo_abs}">
   </div>
-  <div class='meta-bar'>
-    <div class='meta-date'>{date_str}</div>
-    <div class='meta-source'>{source_str}</div>
+  <div class="desc-box">
+    {desc_html}
+  </div>
+  <div class="meta-bar">
+    <div class="meta-source">{source_str}</div>
+    <div class="meta-date">{date_str}</div>
   </div>
 </body>
 </html>"""
 
-    temp_html = "temp_render_card.html"
+    temp_html = "temp_render_v2_card.html"
     with open(temp_html, "w", encoding="utf-8") as f:
         f.write(html_content)
 
@@ -255,7 +282,7 @@ def generate_templated_news_card(
     return output_path
 
 
-def generate_news_card(title, source_name, category="اہم خبر", output_path="card.png", photo_path=None, description="ضلعی انتظامیہ اور متعلقہ اداروں کی جانب سے شہریوں کی سہولت اور امن و امان کے لیے اقدامات جاری"):
+def generate_news_card(title, source_name, category="شہر کی خبریں", output_path="card.png", photo_path=None, description="ضلعی انتظامیہ کی جانب سے شہریوں کی سہولت اور امن و امان کے لیے اقدامات جاری۔"):
     """Wrapper routing to templated card generator."""
     if not photo_path or not os.path.exists(photo_path):
         photo_path = "assets/photos/civic_city.jpg"
@@ -274,7 +301,7 @@ def generate_hero_card(hero, output_path="hero_card.png"):
     photo = hero.get("photo")
     if not photo or not os.path.exists(photo):
         photo = "assets/photos/wrestling_sports.jpg"
-    desc = hero.get("card_desc") or hero.get("tagline", "پہلوانوں، تاریخ اور روایات کا عظیم شہر گوجرانوالہ")
+    desc = hero.get("card_lines") or hero.get("card_desc") or hero.get("tagline", "پہلوانوں، تاریخ اور روایات کا عظیم شہر گوجرانوالہ")
     return generate_templated_news_card(
         headline=f"{hero['name_ur']}: گوجرانوالہ کا تاریخی فخر",
         description=desc,
@@ -288,8 +315,12 @@ def generate_hero_card(hero, output_path="hero_card.png"):
 if __name__ == "__main__":
     out = generate_templated_news_card(
         headline="گوجرانوالہ میں سموگ اور فضائی آلودگی کے خلاف بڑا ایکشن، فیکٹریاں سیل",
-        description="ضلعی انتظامیہ کی جانب سے شہریوں کی صحت اور ماحول کے تحفظ کے لیے احکامات جاری",
-        category="اہم خبر",
-        output_path="test_perfect_render.png"
+        description=[
+            "ضلعی انتظامیہ کا گوجرانوالہ میں ماحولیاتی آلودگی و سموگ کے خلاف گرینڈ آپریشن۔",
+            "ماحولیاتی قوانین کی خلاف ورزی پر متعدد صنعتی یونٹس اور فیکٹریوں کو سیل کر دیا گیا۔",
+            "شہریوں کی صحت کے تحفظ اور ماحولیاتی معیار کی بہتری کے لیے احکامات جاری۔"
+        ],
+        category="شہر کی خبریں",
+        output_path="test_perfect_v2_render.png"
     )
     print("Rendered:", out, "Size:", os.path.getsize(out))
