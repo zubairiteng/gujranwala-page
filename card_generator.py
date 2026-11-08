@@ -139,45 +139,34 @@ def generate_templated_news_card(
     height: 100%;
     object-fit: cover;
   }}
-  /* Headline Area */
-  .text-cover {{
+  /* Content Box: Unified container for headline and description with enlarged, high-readability typography */
+  .content-box {{
     position: absolute;
-    top: 612px;
-    left: 75px;
-    width: 874px;
-    height: 172px;
+    top: 608px;
+    left: 70px;
+    width: 884px;
+    height: 258px;
     background: #fbf8e9;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     text-align: center;
-    padding: 0 25px;
+    padding: 6px 30px;
+    gap: 10px;
   }}
   .headline {{
     color: #062c1a;
-    font-size: 42px;
-    line-height: 1.4;
+    font-size: 48px;
+    line-height: 1.32;
     font-weight: bold;
     text-shadow: 0 1px 1px rgba(0,0,0,0.05);
   }}
-  /* Description Area (2 to 3 readable lines) */
-  .desc-cover {{
-    position: absolute;
-    top: 788px;
-    left: 75px;
-    width: 874px;
-    height: 78px;
-    background: #fbf8e9;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
+  .description {{
     color: #1e293b;
-    font-size: 20px;
-    line-height: 1.48;
-    text-align: center;
-    padding: 0 35px;
+    font-size: 27px;
+    line-height: 1.44;
+    font-weight: 500;
   }}
   /* Meta Row: Clean full bar covering the template's placeholder text completely */
   .meta-bar {{
@@ -221,10 +210,10 @@ def generate_templated_news_card(
   <div class='photo-frame'>
     <img src='file:///{photo_abs}'>
   </div>
-  <div class='text-cover'>
+  <div class='content-box'>
     <div class='headline'>{headline}</div>
+    <div class='description'>{description}</div>
   </div>
-  <div class='desc-cover'>{description}</div>
   <div class='meta-bar'>
     <div class='meta-date'>{date_str}</div>
     <div class='meta-source'>{source_str}</div>

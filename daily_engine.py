@@ -232,24 +232,29 @@ def run_approved_post(poster):
 
 
 def determine_auto_action():
-    """Determine best action based on current Pakistan hour (PKT)."""
+    """
+    Determine scheduled action based on current Pakistan hour (PKT):
+    Exactly 5 News + 1 Personality + 1 Food/Culture = 7 daily slots.
+    """
     pkt_hour = get_pkt_now().hour
     print(f"🕒 Current Pakistan Time: {get_pkt_now().strftime('%Y-%m-%d %I:%M %p PKT')} (Hour: {pkt_hour})")
 
-    if 7 <= pkt_hour < 11:
-        return "news"       # Morning News & Weather
-    elif 11 <= pkt_hour < 14:
-        return "news"       # Midday Real-Time News
-    elif 14 <= pkt_hour < 16:
-        return "hero"       # Afternoon Gujranwala Legends
-    elif 16 <= pkt_hour < 19:
-        return "news"       # Late Afternoon / Spot News
-    elif 19 <= pkt_hour < 21:
-        return "culture"    # Prime Food & Heritage
-    elif 21 <= pkt_hour < 23:
-        return "news"       # Night News Wrap
+    if 7 <= pkt_hour < 10:
+        return "news"       # Slot 1 (08:30 PKT): Morning Civic Brief & Weather
+    elif 10 <= pkt_hour < 13:
+        return "news"       # Slot 2 (11:30 PKT): Midday Real-Time Breaking News
+    elif 13 <= pkt_hour < 16:
+        return "news"       # Slot 3 (14:30 PKT): Afternoon Spot News & Developments
+    elif 16 <= pkt_hour < 18:
+        return "hero"       # Slot 4 (17:30 PKT): Gujranwala Popular Personality / Legend (1 daily)
+    elif 18 <= pkt_hour < 20:
+        return "news"       # Slot 5 (19:30 PKT): Evening Prime News & Admin Alert
+    elif 20 <= pkt_hour < 22:
+        return "culture"    # Slot 6 (21:30 PKT): Food, Heritage & Local Landmarks (1 daily)
+    elif 22 <= pkt_hour < 24:
+        return "news"       # Slot 7 (22:30 PKT): Night Wrap & Breaking Alert
     else:
-        return "hero"
+        return "news"       # Off-peak fallback: Check breaking news, never force duplicate heroes
 
 
 def main():

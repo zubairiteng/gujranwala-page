@@ -72,6 +72,7 @@ def fetch_gujranwala_news(limit=3):
     """
     Fetch latest verified Gujranwala news from RSS feeds.
     Strictly filters for news within the last 48 hours (no outdated data).
+    Prioritizes the freshest real-time updates.
     """
     history = load_history()
     posted_ids = set(history.get("posted_ids", []))
@@ -81,13 +82,18 @@ def fetch_gujranwala_news(limit=3):
     collected = []
     seen_in_batch = set()
 
-    # Search queries targeted for fresh 24-48h updates
+    # High-velocity real-time search queries targeted for 24-48h updates
     queries = [
+        "Gujranwala when:1d",
+        "گوجرانوالہ when:1d",
         "Gujranwala when:2d",
         "گوجرانوالہ when:2d",
         "site:facebook.com/GujranwalaPage when:3d",
         "site:express.pk گوجرانوالہ when:2d",
+        "site:dunya.com.pk گوجرانوالہ when:2d",
         "site:jang.com.pk گوجرانوالہ when:2d",
+        "site:tribune.com.pk Gujranwala when:2d",
+        "site:dawn.com Gujranwala when:2d",
         "site:dailypakistan.com.pk گوجرانوالہ when:2d",
         "Gujranwala Tez",
     ]

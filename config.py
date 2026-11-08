@@ -18,9 +18,9 @@ GRAPH_API_VERSION = "v21.0"
 GRAPH_API_BASE_URL = f"https://graph.facebook.com/{GRAPH_API_VERSION}"
 
 # Target Metrics
-TARGET_FOLLOWERS = 2000
+TARGET_FOLLOWERS = 10000
 DAYS_TIMEFRAME = 30
-DAILY_POST_TARGET = 7  # 5 to 7 posts per day (7 automated slots)
+DAILY_POST_TARGET = 7  # 7 daily slots: 5 News + 1 Popular Personality + 1 Culture/Food
 
 # Editorial Guardrails (Strict Source Verification & Community Safety)
 APPROVED_NEWS_SOURCES = [
@@ -74,12 +74,13 @@ SEARCH_QUERIES = [
     "Nowshera Virkan",
 ]
 
-# Time Slots (PKT UTC+5)
+# Time Slots (PKT UTC+5): 5 News + 1 Personality + 1 Food/Culture = 7 Posts Daily
 POSTING_SLOTS = [
-    {"slot": "morning_brief", "pkt_hour": 8, "theme": "Daily Gujranwala Morning Update & Civic Alerts"},
-    {"slot": "midday_news", "pkt_hour": 12, "theme": "Breaking / Real-Time Gujranwala News"},
-    {"slot": "hero_spotlight", "pkt_hour": 15, "theme": "Gujranwala Hero / Wrestling Pride / Historical Icon"},
-    {"slot": "evening_updates", "pkt_hour": 18, "theme": "Evening City Developments & Traffic / Weather"},
-    {"slot": "culture_food", "pkt_hour": 20, "theme": "Gujranwala Food, Industry, Lifestyle & Landmarks"},
-    {"slot": "community_question", "pkt_hour": 22, "theme": "Late-Night Engagement Question & Discussion"},
+    {"slot": "slot_1_morning_news", "pkt_hour": 8, "theme": "Morning Civic Brief & Weather", "type": "news"},
+    {"slot": "slot_2_midday_news", "pkt_hour": 11, "theme": "Midday Real-Time Breaking News", "type": "news"},
+    {"slot": "slot_3_afternoon_news", "pkt_hour": 14, "theme": "Afternoon Spot News & City Updates", "type": "news"},
+    {"slot": "slot_4_personality", "pkt_hour": 17, "theme": "Gujranwala Popular Personality & Legend Spotlight", "type": "hero"},
+    {"slot": "slot_5_evening_news", "pkt_hour": 19, "theme": "Evening Prime News & Administration Updates", "type": "news"},
+    {"slot": "slot_6_culture_food", "pkt_hour": 21, "theme": "Gujranwala Food, Heritage & Local Landmarks", "type": "culture"},
+    {"slot": "slot_7_night_news", "pkt_hour": 22, "theme": "Night Wrap & Breaking News Alert", "type": "news"},
 ]
