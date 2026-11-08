@@ -1,6 +1,6 @@
 """
 Configuration file for Hamara Gujranwala Facebook Page Automation.
-Page Target: 2,000+ Followers within 30 Days through High-Authority Local News,
+Page Target: 10,000+ Followers within 30 Days through High-Authority Local News,
 Hero Tributes, Culture, Food, and Community Engagement.
 """
 
@@ -49,6 +49,7 @@ PROHIBITED_KEYWORDS = [
     "vulgar",
     "blasphemy",
     "sectarian",
+    "suicide",
     "suicide video",
     "explicit",
     "unverified rumor",
@@ -56,6 +57,11 @@ PROHIBITED_KEYWORDS = [
     "cybercrime",
     "fraud scheme",
     "gambling",
+    "rape",
+    "raping",
+    "sexual assault",
+    "child abuse",
+    "molest",
     "music single",
     "music video",
     "song release",
