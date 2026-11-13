@@ -2,7 +2,8 @@
 Daily Morning Weather & Smog/AQI Engine for Gujranwala.
 Fetches real-time meteorological and air quality index data for Gujranwala,
 crafts human-expert Urdu forecasts with 3 structured bullet points,
-renders branded cards on the official V2 template, and posts to Facebook.
+renders branded cards on the official V2 template with Noto Naskh Arabic Bold,
+and posts to Facebook.
 """
 
 import os
@@ -25,20 +26,20 @@ GUJRANWALA_LON = 74.1945
 
 
 WEATHER_CODE_UR = {
-    0: "مطلع بالکل صاف اور دھوپ",
-    1: "ہلکے بادل اور صاف موسم",
-    2: "جزوی طور پر ابر آلود",
-    3: "مطلع مکمل ابر آلود",
-    45: "صبح کے وقت شدید دھند اور اسموگ",
-    48: "جمنے والی دھند اور کہرا",
-    51: "ہلکی پھلکی بوندا باندی",
+    0: "صاف اور دھوپ",
+    1: "ہلکے بادل اور صاف",
+    2: "جزوی ابر آلود",
+    3: "مکمل ابر آلود",
+    45: "شدید دھند اور اسموگ",
+    48: "جمنے والا کہرا",
+    51: "ہلکی بوندا باندی",
     53: "درمیانی بارش",
-    55: "تیز بارش کا امکان",
-    61: "بارش کا سلسلہ جاری رہنے کا امکان",
+    55: "تیز بارش",
+    61: "بارش کا امکان",
     63: "موسلادھار بارش",
     65: "شدید موسلادھار بارش",
-    80: "وقفے وقفے سے بارش کی پھوار",
-    95: "گرج چمک کے ساتھ طوفانی بارش"
+    80: "بارش کی پھوار",
+    95: "طوفانی بارش"
 }
 
 
@@ -59,7 +60,6 @@ def get_aqi_advisory(aqi):
 def fetch_gujranwala_weather_data():
     """Fetch live forecast and air quality from Open-Meteo for Gujranwala."""
     try:
-        # Weather forecast
         w_url = (
             f"https://api.open-meteo.com/v1/forecast?latitude={GUJRANWALA_LAT}&longitude={GUJRANWALA_LON}"
             "&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m"
@@ -80,7 +80,6 @@ def fetch_gujranwala_weather_data():
         humidity = round(current.get("relative_humidity_2m", 65))
         wind_speed = round(current.get("wind_speed_10m", 8))
 
-        # Air Quality / Smog index
         aqi_url = (
             f"https://air-quality-api.open-meteo.com/v1/air-quality?latitude={GUJRANWALA_LAT}&longitude={GUJRANWALA_LON}"
             "&current=pm2_5,us_aqi&timezone=Asia%2FKarachi"
@@ -123,12 +122,12 @@ def craft_weather_package():
     data = fetch_gujranwala_weather_data()
     aqi_status, aqi_advice = get_aqi_advisory(data["us_aqi"])
 
-    headline_ur = f"گوجرانوالہ: آج کا موسم اور اسموگ الرٹ"
+    headline_ur = "گوجرانوالہ کا آج کا موسم\nاور اہم اسموگ الرٹ"
 
     desc_lines = [
-        f"آج متوقع درجہ حرارت زیادہ سے زیادہ {data['temp_max']}°C اور کم سے کم {data['temp_min']}°C رہے گا۔",
-        f"موسمی صورتحال: {data['w_desc']}، بارش کا امکان {data['rain_prob']} فیصد متوقع۔",
-        f"ائیر کوالٹی انڈیکس (AQI): {data['us_aqi']} ({aqi_status})، {aqi_advice}۔"
+        f"درجہ حرارت: زیادہ سے زیادہ {data['temp_max']}، کم سے کم {data['temp_min']} ڈگری۔",
+        f"موسمی صورتحال: مطلع {data['w_desc']} متوقع۔",
+        f"ائیر کوالٹی انڈیکس {data['us_aqi']}، ماسک لازمی استعمال کریں۔"
     ]
 
     # Select strictly matched photo

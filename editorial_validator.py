@@ -2,11 +2,12 @@
 Autonomous Editorial Validation Engine for Hamara Gujranwala.
 Acts as a senior Pakistani digital news editor and audience validator before any post is published.
 Enforces:
-1. Layman readability and natural Urdu syntax (no robotic machine translation).
-2. Sentence completeness (no truncated thoughts or dangling prepositions).
-3. 3-bullet structured clarity.
-4. Strict photo-to-topic relevance.
-5. Community standards and safety compliance.
+1. Noto Naskh Arabic Bold typography constraints (72-80px headline, 42-50px description).
+2. Layman readability and natural Urdu syntax (no robotic machine translation).
+3. Sentence completeness (no truncated thoughts or dangling prepositions).
+4. Single-line bullet discipline (32-48 characters per bullet, exactly 3 lines).
+5. Strict photo-to-topic relevance (zero photo mismatches).
+6. Community standards and safety compliance.
 """
 
 import os
@@ -22,13 +23,13 @@ def validate_headline(headline):
     if not headline or not isinstance(headline, str):
         return False, "Headline is empty or invalid"
 
-    cleaned = headline.strip()
+    cleaned = headline.strip().replace("<br>", " ").replace("\n", " ")
     words = cleaned.split()
 
-    if len(words) < 4:
+    if len(words) < 3:
         return False, f"Headline too short ({len(words)} words)"
-    if len(words) > 22:
-        return False, f"Headline too long ({len(words)} words)"
+    if len(words) > 16:
+        return False, f"Headline too long ({len(words)} words, max 16)"
 
     # Check for dangling particles at the end
     last_word = words[-1].strip("،۔-:")
@@ -57,10 +58,10 @@ def validate_description_lines(desc_lines):
         clean_line = line.strip().lstrip("-• ")
         words = clean_line.split()
 
-        if len(words) < 5:
+        if len(words) < 3:
             return False, f"Line {i} is too brief ({len(words)} words)"
-        if len(words) > 24:
-            return False, f"Line {i} is too long ({len(words)} words)"
+        if len(clean_line) > 50:
+            return False, f"Line {i} is too long ({len(clean_line)} chars, max 50 for single-line fit)"
 
         # Check for placeholder or AI template leak
         for phrase in AI_DUMMY_PHRASES:
@@ -138,11 +139,11 @@ def validate_and_refine_package(pkg):
 
 if __name__ == "__main__":
     test_pkg = {
-        "headline_ur": "این اے 77 گوجرانوالہ: ضمنی انتخابات کی پولنگ کا وقت ختم، ووٹوں کی گنتی جاری",
+        "headline_ur": "این اے 77 گوجرانوالہ: انتخابی ضابطہ اخلاق پر عملدرآمد کی ہدایت",
         "desc_lines": [
-            "الیکشن کمیشن نے این اے 77 گوجرانوالہ میں ضابطہ اخلاق کی پابندی کا حکم جاری کر دیا۔",
-            "انتخابی ضوابط کی مبینہ خلاف ورزی پر متعلقہ پارٹی رہنماؤں سے باضابطہ جواب طلب۔",
-            "ضلعی مانیٹرنگ افسران کو تمام پولنگ اسٹیشنز پر شفافیت یقینی بنانے کی سخت ہدایت۔"
+            "این اے 77 میں ضابطہ اخلاق کی پابندی کی ہدایت۔",
+            "ضوابط کی خلاف ورزی پر رہنماؤں سے جواب طلب۔",
+            "الیکشن کمیشن کی جانب سے شفاف انتخابات کا عزم۔"
         ],
         "category_ur": "سیاست و انتخابات",
         "photo_path": "assets/photos/elections_politics.jpg"

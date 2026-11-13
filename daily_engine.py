@@ -2,7 +2,7 @@ from urdu_news_engine import craft_urdu_news_package
 """
 Main Autonomous Execution Engine for Hamara Gujranwala Facebook Page.
 Executes scheduled posting slots using the official Hamara Gujranwala 1024x1024 Template
-and crystal-clear Noto Sans Arabic ExtraBold typography.
+and crystal-clear Noto Naskh Arabic Bold typography (72-80px headline, 42-50px description).
 """
 
 import argparse
@@ -172,11 +172,11 @@ def run_culture_post(poster):
 
     temp_card = "temp_culture_card.png"
     generate_templated_news_card(
-        headline="گوجرانوالہ کے روایتی کھانے اور ثقافتی پہچان",
+        headline="گوجرانوالہ کے روایتی کھانے\nاور ثقافتی پہچان",
         description=[
-            "چراغ کے روایتی کباب و تکے اور کھیا علی گیٹ کی خالص لسی۔",
-            "دال بازار کے چٹپٹے ذائقے جن کے شوقین ملک بھر سے آتے ہیں۔",
-            "کھانوں کے شوقین زندہ دل شہریوں کا تاریخی مرکز گوجرانوالہ۔"
+            "چراغ کے روایتی کباب و تکے اور خالص لسی۔",
+            "دال بازار کے چٹپٹے ذائقوں کے دیوانے۔",
+            "کھانوں کے شوقین زندہ دل شہریوں کا مرکز۔"
         ],
         category="ذائقہ گوجرانوالہ کا",
         photo_path="assets/photos/food_heritage.jpg",
@@ -208,11 +208,11 @@ def run_approved_post(poster):
     if not os.path.exists(card_path):
         card_path = "news_card.png"
         generate_templated_news_card(
-            headline="گوجرانوالہ میں سموگ اور فضائی آلودگی کے خلاف بڑا ایکشن، فیکٹریاں سیل",
+            headline="گوجرانوالہ میں سموگ پر ایکشن\nمتعدد فیکٹریاں اور بھٹے سیل",
             description=[
-                "ضلعی انتظامیہ کی جانب سے شہریوں کی صحت اور ماحول کے تحفظ کے لیے احکامات جاری۔",
-                "دھواں چھوڑنے والی فیکٹریوں اور بھٹوں کے خلاف بلا امتیاز کریک ڈاؤن جاری۔",
-                "خلاف ورزی کرنے والوں کو بھاری جرمانے اور مقدمات درج کرنے کا انتباہ۔"
+                "فضائی آلودگی کے خلاف ضلعی انتظامیہ متحرک۔",
+                "دھواں چھوڑنے والے یونٹس کے خلاف گرینڈ آپریشن۔",
+                "خلاف ورزی پر بھاری جرمانے عائد کرنے کا حکم۔"
             ],
             category="اہم خبر",
             photo_path="assets/smog_photo_1.jpg",

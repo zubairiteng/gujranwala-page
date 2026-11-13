@@ -1,8 +1,9 @@
 """
 Card Generator for Hamara Gujranwala Facebook Page.
 Renders branded news cards using the official Hamara Gujranwala V2 Template (1024x1024)
-featuring large, high-readability typography in Noto Sans Arabic (ExtraBold / Bold),
-a centered 914x254 photo frame, 3 structured bullet description lines,
+featuring genuine Noto Naskh Arabic Bold typography,
+balanced 2-line headlines (standard 80px, floor 72px),
+a centered 914x236 photo frame, 3 structured bullet description lines (standard 50px, floor 42px),
 and dynamic reference & date metadata.
 """
 
@@ -14,7 +15,9 @@ from datetime import datetime
 from PIL import Image
 
 TEMPLATE_PATH = "assets/template_v2_clean.png"
-FONT_PATH = "assets/fonts/NotoSansArabic-Variable.ttf"
+FONT_BOLD = "assets/fonts/NotoNaskhArabic-Bold.ttf"
+FONT_SEMIBOLD = "assets/fonts/NotoNaskhArabic-SemiBold.ttf"
+FONT_REGULAR = "assets/fonts/NotoNaskhArabic-Regular.ttf"
 DEFAULT_PHOTO = "assets/photos/civic_city.jpg"
 
 
@@ -50,6 +53,36 @@ def get_urdu_date(dt=None):
     return f"{d.day:02d} {months_ur[d.month - 1]} {d.year}ء"
 
 
+def balance_headline_to_2_lines(headline):
+    """
+    Ensure headline is neatly split into 2 balanced lines for optimal 72-80px presentation.
+    Never leaves dangling prepositions at the end of the first line.
+    """
+    if "<br>" in headline or "\n" in headline:
+        parts = headline.replace("\n", "<br>").split("<br>")
+        clean_parts = [p.strip() for p in parts if p.strip()]
+        return "<br>".join(clean_parts[:2])
+
+    cleaned = headline.strip()
+    words = cleaned.split()
+
+    if len(words) <= 5:
+        if len(cleaned) <= 24:
+            return cleaned
+        mid = len(words) // 2
+        return " ".join(words[:mid]) + "<br>" + " ".join(words[mid:])
+
+    # Split into 2 equal halves
+    mid = (len(words) + 1) // 2
+    dangling = ["نے", "کو", "کا", "کی", "کے", "پر", "سے", "میں", "اور", "کہ", "تک"]
+    if mid < len(words) and words[mid - 1] in dangling and mid > 2:
+        mid += 1
+
+    line1 = " ".join(words[:mid])
+    line2 = " ".join(words[mid:])
+    return f"{line1}<br>{line2}"
+
+
 def format_description_to_bullet_lines(description):
     """
     Convert raw description string or list into exactly 2 to 3
@@ -70,8 +103,7 @@ def format_description_to_bullet_lines(description):
         clean_lines = ["ضلعی انتظامیہ کی جانب سے شہریوں کی سہولت اور امن و امان کے لیے اقدامات جاری۔"]
 
     # Keep at most 3 clear lines
-    clean_lines = clean_lines[:3]
-    return clean_lines
+    return clean_lines[:3]
 
 
 def generate_templated_news_card(
@@ -85,14 +117,16 @@ def generate_templated_news_card(
 ):
     """
     Renders the official 1024x1024 Hamara Gujranwala V2 card with
-    enlarged, crystal-clear Noto Sans Arabic ExtraBold typography.
+    Noto Naskh Arabic Bold typography, 72-80px headline, and 42-50px description.
     """
     browser_exe = get_browser_executable()
     if not browser_exe:
         raise RuntimeError("No compatible headless browser (Edge/Chrome/Chromium) found for typography rendering.")
 
     template_abs = os.path.abspath(TEMPLATE_PATH).replace("\\", "/")
-    font_abs = os.path.abspath(FONT_PATH).replace("\\", "/")
+    font_bold_abs = os.path.abspath(FONT_BOLD).replace("\\", "/")
+    font_semi_abs = os.path.abspath(FONT_SEMIBOLD).replace("\\", "/")
+    font_reg_abs = os.path.abspath(FONT_REGULAR).replace("\\", "/")
 
     photo_to_use = photo_path if (photo_path and os.path.exists(photo_path)) else DEFAULT_PHOTO
     photo_abs = os.path.abspath(photo_to_use).replace("\\", "/")
@@ -107,29 +141,63 @@ def generate_templated_news_card(
     elif not source_str.startswith("حوالہ:"):
         source_str = f"حوالہ: {source_str.lstrip('📷 ')}"
 
-    # Dynamic headline sizing for optimal fill and zero clipping
-    words = len(headline.split())
-    if words > 14:
-        h_size = 48
-    elif words > 10:
-        h_size = 52
-    else:
-        h_size = 56
+    # Dynamic headline sizing strictly within user's rule: standard 80px, floor 72px
+    formatted_headline = balance_headline_to_2_lines(headline)
+    h_lines = formatted_headline.split("<br>")
+    max_h_words = max(len(l.split()) for l in h_lines)
+    max_h_chars = max(len(l) for l in h_lines)
 
-    # Format 2 to 3 bullet description lines
+    if max_h_words <= 4 and max_h_chars <= 24 and len(h_lines) <= 2:
+        h_size = 80
+        h_lh = 1.25
+    elif max_h_words <= 6 and max_h_chars <= 34 and len(h_lines) <= 2:
+        h_size = 76
+        h_lh = 1.20
+    else:
+        h_size = 72
+        h_lh = 1.18
+
+    # Format 2 to 3 bullet description lines strictly within user's rule: standard 50px, floor 42px
     lines = format_description_to_bullet_lines(description)
-    desc_html = "".join([f'<div class="desc-line">- {l}</div>' for l in lines])
+    clean_lines = [l.strip().lstrip("-• ") for l in lines]
+    max_desc_chars = max(len(l) for l in clean_lines) if clean_lines else 0
+
+    if max_desc_chars <= 36:
+        desc_size = 50
+        desc_lh = 1.34
+    elif max_desc_chars <= 44:
+        desc_size = 46
+        desc_lh = 1.30
+    else:
+        desc_size = 42
+        desc_lh = 1.26
+
+    desc_html = "\n".join([f'    <div class="desc-line">- {l}</div>' for l in clean_lines])
 
     html_content = f"""<!DOCTYPE html>
-<html>
+<html lang="ur" dir="rtl">
 <head>
 <meta charset="utf-8">
 <style>
   @font-face {{
-    font-family: 'UrduNewsFont';
-    src: url('file:///{font_abs}');
-    font-weight: 100 900;
+    font-family: 'Noto Naskh Arabic Bold';
+    src: url('file:///{font_bold_abs}') format('truetype');
+    font-weight: 700;
+    font-style: normal;
   }}
+  @font-face {{
+    font-family: 'Noto Naskh Arabic Bold';
+    src: url('file:///{font_semi_abs}') format('truetype');
+    font-weight: 600;
+    font-style: normal;
+  }}
+  @font-face {{
+    font-family: 'Noto Naskh Arabic Bold';
+    src: url('file:///{font_reg_abs}') format('truetype');
+    font-weight: 400;
+    font-style: normal;
+  }}
+
   * {{
     box-sizing: border-box;
     margin: 0;
@@ -142,39 +210,39 @@ def generate_templated_news_card(
     position: relative;
     background-image: url('file:///{template_abs}');
     background-size: 1024px 1024px;
-    font-family: 'UrduNewsFont', 'Segoe UI', Tahoma, sans-serif;
+    font-family: 'Noto Naskh Arabic Bold', 'Noto Naskh Arabic', serif;
     direction: rtl;
     -webkit-font-smoothing: antialiased;
   }}
   
-  /* Top Headline Box: Huge, bold, centered in navy blue matching user template */
+  /* Top Headline Box: Bold centered in deep navy blue (#07193b) matching user template */
   .headline-box {{
     position: absolute;
-    top: 96px;
-    left: 45px;
-    width: 934px;
+    top: 92px;
+    left: 35px;
+    width: 954px;
     height: 236px;
     display: flex;
     justify-content: center;
     align-items: center;
     text-align: center;
-    padding: 0 25px;
+    padding: 0 10px;
   }}
   .headline {{
     color: #07193b;
     font-size: {h_size}px;
-    line-height: 1.34;
-    font-weight: 800;
+    line-height: {h_lh};
+    font-weight: 700;
     text-shadow: 0 1px 1px rgba(0,0,0,0.06);
   }}
   
-  /* Center Photo Frame: 914 x 254 px */
+  /* Center Photo Frame: 914 x 236 px */
   .photo-frame {{
     position: absolute;
-    top: 366px;
+    top: 360px;
     left: 55px;
     width: 914px;
-    height: 254px;
+    height: 236px;
     border-radius: 6px;
     overflow: hidden;
     background: #07193b;
@@ -185,13 +253,13 @@ def generate_templated_news_card(
     object-fit: cover;
   }}
   
-  /* Description Area: 2-3 readable bullet lines in 28px SemiBold */
+  /* Description Area: 3 readable bullet lines in 42-50px Bold */
   .desc-box {{
     position: absolute;
-    top: 636px;
-    left: 50px;
-    width: 924px;
-    height: 216px;
+    top: 606px;
+    left: 35px;
+    width: 954px;
+    height: 244px;
     display: flex;
     flex-direction: column;
     justify-content: space-evenly;
@@ -201,9 +269,10 @@ def generate_templated_news_card(
   }}
   .desc-line {{
     color: #0c1b33;
-    font-size: 28px;
-    line-height: 1.55;
-    font-weight: 600;
+    font-size: {desc_size}px;
+    line-height: {desc_lh};
+    font-weight: 700;
+    text-align: center;
   }}
   
   /* Meta Row: Source (Left) & Date (Right) above bottom bar */
@@ -212,7 +281,7 @@ def generate_templated_news_card(
     top: 864px;
     left: 55px;
     width: 914px;
-    height: 60px;
+    height: 56px;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -220,13 +289,13 @@ def generate_templated_news_card(
   }}
   .meta-source {{
     color: #07193b;
-    font-size: 26px;
+    font-size: 28px;
     font-weight: 700;
     direction: rtl;
   }}
   .meta-date {{
     color: #07193b;
-    font-size: 26px;
+    font-size: 28px;
     font-weight: 700;
     direction: rtl;
   }}
@@ -234,13 +303,13 @@ def generate_templated_news_card(
 </head>
 <body>
   <div class="headline-box">
-    <div class="headline">{headline}</div>
+    <div class="headline">{formatted_headline}</div>
   </div>
   <div class="photo-frame">
     <img src="file:///{photo_abs}">
   </div>
   <div class="desc-box">
-    {desc_html}
+{desc_html}
   </div>
   <div class="meta-bar">
     <div class="meta-source">{source_str}</div>
@@ -298,13 +367,13 @@ def generate_news_card(title, source_name, category="شہر کی خبریں", ou
 
 
 def generate_hero_card(hero, output_path="hero_card.png"):
-    """Wrapper for hero tributes with strictly matched archival portrait and 2-3 line context."""
+    """Wrapper for hero tributes with strictly matched archival portrait and 3-line context."""
     photo = hero.get("photo")
     if not photo or not os.path.exists(photo):
         photo = "assets/photos/wrestling_sports.jpg"
     desc = hero.get("card_lines") or hero.get("card_desc") or hero.get("tagline", "پہلوانوں، تاریخ اور روایات کا عظیم شہر گوجرانوالہ")
     return generate_templated_news_card(
-        headline=f"{hero['name_ur']}: گوجرانوالہ کا تاریخی فخر",
+        headline=f"{hero['name_ur']}<br>گوجرانوالہ کا تاریخی فخر",
         description=desc,
         category="گوجرانوالہ کا فخر",
         photo_path=photo,
@@ -315,7 +384,7 @@ def generate_hero_card(hero, output_path="hero_card.png"):
 
 if __name__ == "__main__":
     out = generate_templated_news_card(
-        headline="گوجرانوالہ کی اہم خبر، تفصیلات ایک نظر میں",
+        headline="گوجرانوالہ کی اہم خبر\nتفصیلات ایک نظر میں",
         description=[
             "یہاں خبر کی پہلی اہم تفصیل درج کریں۔",
             "دوسری سطر میں ضروری پس منظر واضح کریں۔",
