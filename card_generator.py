@@ -1,7 +1,7 @@
 """
 Card Generator for Hamara Gujranwala Facebook Page.
 Renders branded news cards using the official Hamara Gujranwala V2 Template (1024x1024)
-featuring large, high-readability typography in Jameel Noori Nastaleeq Kasheeda,
+featuring large, high-readability typography in Noto Sans Arabic (ExtraBold / Bold),
 a centered 914x254 photo frame, 3 structured bullet description lines,
 and dynamic reference & date metadata.
 """
@@ -14,7 +14,7 @@ from datetime import datetime
 from PIL import Image
 
 TEMPLATE_PATH = "assets/template_v2_clean.png"
-FONT_PATH = "assets/fonts/Jameel_Noori_Nastaleeq_Kasheeda.ttf"
+FONT_PATH = "assets/fonts/NotoSansArabic-Variable.ttf"
 DEFAULT_PHOTO = "assets/photos/civic_city.jpg"
 
 
@@ -53,7 +53,7 @@ def get_urdu_date(dt=None):
 def format_description_to_bullet_lines(description):
     """
     Convert raw description string or list into exactly 2 to 3
-    high-impact, bulleted Urdu Nastaleeq lines.
+    high-impact, bulleted Urdu lines matching the user's template.
     """
     if isinstance(description, list):
         clean_lines = [line.strip().lstrip("-• ") for line in description if line.strip()]
@@ -85,11 +85,11 @@ def generate_templated_news_card(
 ):
     """
     Renders the official 1024x1024 Hamara Gujranwala V2 card with
-    enlarged, crystal-clear Jameel Noori Nastaleeq Kasheeda typography.
+    enlarged, crystal-clear Noto Sans Arabic ExtraBold typography.
     """
     browser_exe = get_browser_executable()
     if not browser_exe:
-        raise RuntimeError("No compatible headless browser (Edge/Chrome/Chromium) found for Nastaleeq rendering.")
+        raise RuntimeError("No compatible headless browser (Edge/Chrome/Chromium) found for typography rendering.")
 
     template_abs = os.path.abspath(TEMPLATE_PATH).replace("\\", "/")
     font_abs = os.path.abspath(FONT_PATH).replace("\\", "/")
@@ -126,8 +126,9 @@ def generate_templated_news_card(
 <meta charset="utf-8">
 <style>
   @font-face {{
-    font-family: 'JameelKasheeda';
+    font-family: 'UrduNewsFont';
     src: url('file:///{font_abs}');
+    font-weight: 100 900;
   }}
   * {{
     box-sizing: border-box;
@@ -141,12 +142,12 @@ def generate_templated_news_card(
     position: relative;
     background-image: url('file:///{template_abs}');
     background-size: 1024px 1024px;
-    font-family: 'JameelKasheeda', 'Noto Nastaliq Urdu', Tahoma, sans-serif;
+    font-family: 'UrduNewsFont', 'Segoe UI', Tahoma, sans-serif;
     direction: rtl;
     -webkit-font-smoothing: antialiased;
   }}
   
-  /* Top Headline Box: Huge, bold, centered in navy blue */
+  /* Top Headline Box: Huge, bold, centered in navy blue matching user template */
   .headline-box {{
     position: absolute;
     top: 96px;
@@ -163,7 +164,7 @@ def generate_templated_news_card(
     color: #07193b;
     font-size: {h_size}px;
     line-height: 1.34;
-    font-weight: bold;
+    font-weight: 800;
     text-shadow: 0 1px 1px rgba(0,0,0,0.06);
   }}
   
@@ -184,7 +185,7 @@ def generate_templated_news_card(
     object-fit: cover;
   }}
   
-  /* Description Area: 2-3 readable bullet lines */
+  /* Description Area: 2-3 readable bullet lines in 28px SemiBold */
   .desc-box {{
     position: absolute;
     top: 636px;
@@ -201,8 +202,8 @@ def generate_templated_news_card(
   .desc-line {{
     color: #0c1b33;
     font-size: 28px;
-    line-height: 1.45;
-    font-weight: 500;
+    line-height: 1.55;
+    font-weight: 600;
   }}
   
   /* Meta Row: Source (Left) & Date (Right) above bottom bar */
@@ -220,13 +221,13 @@ def generate_templated_news_card(
   .meta-source {{
     color: #07193b;
     font-size: 26px;
-    font-weight: bold;
+    font-weight: 700;
     direction: rtl;
   }}
   .meta-date {{
     color: #07193b;
     font-size: 26px;
-    font-weight: bold;
+    font-weight: 700;
     direction: rtl;
   }}
 </style>
@@ -314,13 +315,13 @@ def generate_hero_card(hero, output_path="hero_card.png"):
 
 if __name__ == "__main__":
     out = generate_templated_news_card(
-        headline="گوجرانوالہ میں سموگ اور فضائی آلودگی کے خلاف بڑا ایکشن، فیکٹریاں سیل",
+        headline="گوجرانوالہ کی اہم خبر، تفصیلات ایک نظر میں",
         description=[
-            "ضلعی انتظامیہ کا گوجرانوالہ میں ماحولیاتی آلودگی و سموگ کے خلاف گرینڈ آپریشن۔",
-            "ماحولیاتی قوانین کی خلاف ورزی پر متعدد صنعتی یونٹس اور فیکٹریوں کو سیل کر دیا گیا۔",
-            "شہریوں کی صحت کے تحفظ اور ماحولیاتی معیار کی بہتری کے لیے احکامات جاری۔"
+            "یہاں خبر کی پہلی اہم تفصیل درج کریں۔",
+            "دوسری سطر میں ضروری پس منظر واضح کریں۔",
+            "تیسری سطر میں اہم نتیجہ یا اگلا قدم لکھیں۔"
         ],
         category="شہر کی خبریں",
-        output_path="test_perfect_v2_render.png"
+        output_path="test_font_match.png"
     )
     print("Rendered:", out, "Size:", os.path.getsize(out))

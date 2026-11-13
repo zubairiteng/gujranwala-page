@@ -2,28 +2,29 @@ name: Hamara Gujranwala Facebook Autonomous Manager
 
 on:
   schedule:
-    # 7 Independent Peak Daily Slots across Pakistan Standard Time (PKT):
-    - cron: '30 3 * * *'   # 08:30 AM PKT (Morning News & Weather)
-    - cron: '30 6 * * *'   # 11:30 AM PKT (Midday Breaking News)
-    - cron: '30 9 * * *'   # 02:30 PM PKT (Afternoon Spot News)
-    - cron: '30 12 * * *'  # 05:30 PM PKT (Hero Tribute & Wrestling Pride)
-    - cron: '30 14 * * *'  # 07:30 PM PKT (Evening Prime News)
-    - cron: '30 16 * * *'  # 09:30 PM PKT (Food & Cultural Heritage)
-    - cron: '30 17 * * *'  # 10:30 PM PKT (Community Discussion)
+    # 7 Independent Peak Daily Slots across Pakistan Standard Time (PKT, UTC+5):
+    - cron: '30 2 * * *'   # 07:30 AM PKT (Morning Weather & Smog Brief)
+    - cron: '30 5 * * *'   # 10:30 AM PKT (Midday Breaking News)
+    - cron: '30 8 * * *'   # 01:30 PM PKT (Afternoon Spot News)
+    - cron: '30 11 * * *'  # 04:30 PM PKT (Hero Tribute & Wrestling Pride)
+    - cron: '30 13 * * *'  # 06:30 PM PKT (Evening Prime News)
+    - cron: '30 15 * * *'  # 08:30 PM PKT (Food & Cultural Heritage)
+    - cron: '30 17 * * *'  # 10:30 PM PKT (Night News Wrap)
 
   workflow_dispatch:
     inputs:
       action:
         description: 'Posting Action to Execute'
         required: true
-        default: 'approved'
+        default: 'auto'
         type: choice
         options:
-          - 'approved'
           - 'auto'
+          - 'weather'
           - 'news'
           - 'hero'
           - 'culture'
+          - 'approved'
           - 'stats'
 
 permissions:

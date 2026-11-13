@@ -2,7 +2,7 @@ from urdu_news_engine import craft_urdu_news_package
 """
 Main Autonomous Execution Engine for Hamara Gujranwala Facebook Page.
 Executes scheduled posting slots using the official Hamara Gujranwala 1024x1024 Template
-and genuine Jameel Noori Nastaleeq Kasheeda typography.
+and crystal-clear Noto Sans Arabic ExtraBold typography.
 """
 
 import argparse
@@ -21,9 +21,11 @@ if sys.stdout.encoding != 'utf-8':
 from config import DAILY_POST_TARGET, PAGE_ID, PAGE_NAME, TARGET_FOLLOWERS
 from card_generator import generate_hero_card, generate_templated_news_card
 from content_formatter import format_culture_post, format_hero_post, format_news_post
+from editorial_validator import validate_and_refine_package
 from fb_poster import FacebookPoster
 from heroes_bank import get_unposted_hero
 from news_aggregator import fetch_gujranwala_news, load_history, save_history
+from weather_engine import run_weather_post
 
 LOGS_DIR = "daily_logs"
 
@@ -69,7 +71,7 @@ def log_daily_event(action_name, details, post_id=None):
 
 
 def run_news_post(poster):
-    """Fetch verified Gujranwala news, generate card on official template, and publish."""
+    """Fetch verified Gujranwala news, validate autonomously, generate card, and publish."""
     print("🔎 Searching for fresh verified Gujranwala news (within 48 hours)...")
     news_items = fetch_gujranwala_news(limit=1)
 
@@ -84,13 +86,22 @@ def run_news_post(poster):
     date_str = get_urdu_date()
     source_str = f"حوالہ: گوجرانوالہ پیج / {item['source']}"
 
-    # Generate complete Urdu news package (Urdu headline, description, category, matched photo, and caption)
+    # Generate complete Urdu news package
     pkg = craft_urdu_news_package(item)
-    headline = pkg["headline_ur"]
-    description = pkg["desc_ur"]
-    category = pkg["category_ur"]
-    photo_path = pkg["photo_path"]
-    caption = pkg["caption"]
+
+    # Run Autonomous Editorial Validator
+    is_valid, refined_pkg, errors = validate_and_refine_package(pkg)
+    if not is_valid:
+        print(f"⚠️ Editorial validator flagged issues: {errors}")
+        print("🔧 Auto-refinements applied to preserve journalistic standard.")
+    else:
+        print("✅ Editorial validator approved news package.")
+
+    headline = refined_pkg["headline_ur"]
+    description = refined_pkg["desc_lines"]
+    category = refined_pkg["category_ur"]
+    photo_path = refined_pkg["photo_path"]
+    caption = refined_pkg["caption"]
 
     generate_templated_news_card(
         headline=headline,
@@ -116,7 +127,7 @@ def run_news_post(poster):
 
     log_daily_event(
         "Breaking News Post",
-        f"**Headline:** {item['title']}<br>**Source:** {item['source']}",
+        f"**Headline:** {headline}<br>**Source:** {item['source']}",
         post_id=res.get("post_id") or res.get("id")
     )
     return res
@@ -162,7 +173,11 @@ def run_culture_post(poster):
     temp_card = "temp_culture_card.png"
     generate_templated_news_card(
         headline="گوجرانوالہ کے روایتی کھانے اور ثقافتی پہچان",
-        description="چراغ کے روایتی کباب و تکے، کھیا علی گیٹ کی لسی اور دال بازار کے چٹپٹے ذائقے، جن کی لذت کے دیوانے پورے ملک سے گوجرانوالہ کا رخ کرتے ہیں",
+        description=[
+            "چراغ کے روایتی کباب و تکے اور کھیا علی گیٹ کی خالص لسی۔",
+            "دال بازار کے چٹپٹے ذائقے جن کے شوقین ملک بھر سے آتے ہیں۔",
+            "کھانوں کے شوقین زندہ دل شہریوں کا تاریخی مرکز گوجرانوالہ۔"
+        ],
         category="ذائقہ گوجرانوالہ کا",
         photo_path="assets/photos/food_heritage.jpg",
         date_str=get_urdu_date(),
@@ -194,10 +209,14 @@ def run_approved_post(poster):
         card_path = "news_card.png"
         generate_templated_news_card(
             headline="گوجرانوالہ میں سموگ اور فضائی آلودگی کے خلاف بڑا ایکشن، فیکٹریاں سیل",
-            description="ضلعی انتظامیہ کی جانب سے شہریوں کی صحت اور ماحول کے تحفظ کے لیے احکامات جاری",
+            description=[
+                "ضلعی انتظامیہ کی جانب سے شہریوں کی صحت اور ماحول کے تحفظ کے لیے احکامات جاری۔",
+                "دھواں چھوڑنے والی فیکٹریوں اور بھٹوں کے خلاف بلا امتیاز کریک ڈاؤن جاری۔",
+                "خلاف ورزی کرنے والوں کو بھاری جرمانے اور مقدمات درج کرنے کا انتباہ۔"
+            ],
             category="اہم خبر",
             photo_path="assets/smog_photo_1.jpg",
-            date_str="02 نومبر 2026ء",
+            date_str=get_urdu_date(),
             source_str="حوالہ: گوجرانوالہ پیج / ایکسپریس نیوز",
             output_path=card_path
         )
@@ -234,33 +253,37 @@ def run_approved_post(poster):
 def determine_auto_action():
     """
     Determine scheduled action based on current Pakistan hour (PKT):
-    Exactly 5 News + 1 Personality + 1 Food/Culture = 7 daily slots.
+    1 Weather/Smog + 4 Breaking News + 1 Personality + 1 Food/Culture = 7 daily slots.
     """
     pkt_hour = get_pkt_now().hour
     print(f"🕒 Current Pakistan Time: {get_pkt_now().strftime('%Y-%m-%d %I:%M %p PKT')} (Hour: {pkt_hour})")
 
     if 7 <= pkt_hour < 10:
-        return "news"       # Slot 1 (08:30 PKT): Morning Civic Brief & Weather
+        return "weather"    # Slot 1 (07:30 - 08:30 PKT): Morning Civic Weather & Smog Brief
     elif 10 <= pkt_hour < 13:
-        return "news"       # Slot 2 (11:30 PKT): Midday Real-Time Breaking News
+        return "news"       # Slot 2 (10:30 - 11:30 PKT): Midday Real-Time Breaking News
     elif 13 <= pkt_hour < 16:
-        return "news"       # Slot 3 (14:30 PKT): Afternoon Spot News & Developments
+        return "news"       # Slot 3 (13:30 - 14:30 PKT): Afternoon Spot News & Developments
     elif 16 <= pkt_hour < 18:
-        return "hero"       # Slot 4 (17:30 PKT): Gujranwala Popular Personality / Legend (1 daily)
+        return "hero"       # Slot 4 (16:30 - 17:30 PKT): Gujranwala Popular Personality / Legend (1 daily)
     elif 18 <= pkt_hour < 20:
-        return "news"       # Slot 5 (19:30 PKT): Evening Prime News & Admin Alert
+        return "news"       # Slot 5 (18:30 - 19:30 PKT): Evening Prime News & Admin Alert
     elif 20 <= pkt_hour < 22:
-        return "culture"    # Slot 6 (21:30 PKT): Food, Heritage & Local Landmarks (1 daily)
+        return "culture"    # Slot 6 (20:30 - 21:30 PKT): Food, Heritage & Local Landmarks (1 daily)
     elif 22 <= pkt_hour < 24:
         return "news"       # Slot 7 (22:30 PKT): Night Wrap & Breaking Alert
     else:
-        return "news"       # Off-peak fallback: Check breaking news, never force duplicate heroes
+        return "news"       # Off-peak fallback
 
 
 def main():
     parser = argparse.ArgumentParser(description="Hamara Gujranwala Facebook Automation Engine")
-    parser.add_argument("--action", choices=["auto", "approved", "news", "hero", "culture", "stats"], default="auto",
-                        help="Action to execute")
+    parser.add_argument(
+        "--action",
+        choices=["auto", "approved", "weather", "news", "hero", "culture", "stats"],
+        default="auto",
+        help="Action to execute"
+    )
     args = parser.parse_args()
 
     poster = FacebookPoster()
@@ -276,7 +299,14 @@ def main():
 
     print(f"🚀 Executing Action: [{action.upper()}] for Facebook Page '{PAGE_NAME}'...")
 
-    if action == "approved":
+    if action == "weather":
+        res = run_weather_post(poster)
+        log_daily_event(
+            "Morning Weather & Smog Brief",
+            "Live Gujranwala Weather & AQI Health Forecast",
+            post_id=res.get("post_id") or res.get("id")
+        )
+    elif action == "approved":
         res = run_approved_post(poster)
     elif action == "news":
         res = run_news_post(poster)
