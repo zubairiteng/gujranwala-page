@@ -66,11 +66,8 @@ def balance_headline_to_2_lines(headline):
     cleaned = headline.strip()
     words = cleaned.split()
 
-    if len(words) <= 5:
-        if len(cleaned) <= 24:
-            return cleaned
-        mid = len(words) // 2
-        return " ".join(words[:mid]) + "<br>" + " ".join(words[mid:])
+    if len(words) <= 4:
+        return cleaned
 
     # Split into 2 equal halves
     mid = (len(words) + 1) // 2
@@ -144,13 +141,12 @@ def generate_templated_news_card(
     # Dynamic headline sizing strictly within user's rule: standard 80px, floor 72px
     formatted_headline = balance_headline_to_2_lines(headline)
     h_lines = formatted_headline.split("<br>")
-    max_h_words = max(len(l.split()) for l in h_lines)
     max_h_chars = max(len(l) for l in h_lines)
 
-    if max_h_words <= 4 and max_h_chars <= 24 and len(h_lines) <= 2:
+    if max_h_chars <= 21 and len(h_lines) <= 2:
         h_size = 80
         h_lh = 1.25
-    elif max_h_words <= 6 and max_h_chars <= 34 and len(h_lines) <= 2:
+    elif max_h_chars <= 26 and len(h_lines) <= 2:
         h_size = 76
         h_lh = 1.20
     else:
@@ -219,14 +215,14 @@ def generate_templated_news_card(
   .headline-box {{
     position: absolute;
     top: 92px;
-    left: 35px;
-    width: 954px;
+    left: 25px;
+    width: 974px;
     height: 236px;
     display: flex;
     justify-content: center;
     align-items: center;
     text-align: center;
-    padding: 0 10px;
+    padding: 0 5px;
   }}
   .headline {{
     color: #07193b;
@@ -384,13 +380,14 @@ def generate_hero_card(hero, output_path="hero_card.png"):
 
 if __name__ == "__main__":
     out = generate_templated_news_card(
-        headline="گوجرانوالہ کی اہم خبر\nتفصیلات ایک نظر میں",
+        headline="گوجرانوالہ: انسانی اسمگلنگ کیس\nمجرم کو 10 سال قید کی سزا",
         description=[
-            "یہاں خبر کی پہلی اہم تفصیل درج کریں۔",
-            "دوسری سطر میں ضروری پس منظر واضح کریں۔",
-            "تیسری سطر میں اہم نتیجہ یا اگلا قدم لکھیں۔"
+            "انسانی اسمگلنگ اور جرائم میں ملوث عناصر کو سزائیں۔",
+            "گوجرانوالہ عدالت کی جانب سے بھاری جرمانے عائد۔",
+            "غیر قانونی ٹریول ایجنٹس کے خلاف سخت کریک ڈاؤن۔"
         ],
-        category="شہر کی خبریں",
+        category="عدالت و قانون",
+        photo_path="assets/photos/police_patrol.jpg",
         output_path="test_font_match.png"
     )
     print("Rendered:", out, "Size:", os.path.getsize(out))

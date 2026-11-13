@@ -26,6 +26,13 @@ CATEGORY_PHOTOS = {
     "smoke": "assets/photos/smog_factory.jpg",
     "environment": "assets/photos/smog_factory.jpg",
     "kiln": "assets/photos/smog_factory.jpg",
+    # Court / Law / FIA / Sentencing
+    "court": "assets/photos/police_patrol.jpg",
+    "jailed": "assets/photos/police_patrol.jpg",
+    "sentence": "assets/photos/police_patrol.jpg",
+    "trafficker": "assets/photos/police_patrol.jpg",
+    "smuggler": "assets/photos/police_patrol.jpg",
+    "fia": "assets/photos/police_patrol.jpg",
     # Accident / Rescue / Traffic
     "accident": "assets/photos/traffic_accident.jpg",
     "crash": "assets/photos/traffic_accident.jpg",
@@ -34,8 +41,6 @@ CATEGORY_PHOTOS = {
     "rescue": "assets/photos/traffic_accident.jpg",
     "highway": "assets/photos/traffic_accident.jpg",
     "injured": "assets/photos/traffic_accident.jpg",
-    "died": "assets/photos/traffic_accident.jpg",
-    "killed": "assets/photos/traffic_accident.jpg",
     # Police / Crime / Security / Administration
     "police": "assets/photos/police_patrol.jpg",
     "crime": "assets/photos/police_patrol.jpg",
@@ -89,7 +94,6 @@ CATEGORY_PHOTOS = {
     "station": "assets/photos/railway_station.jpg",
 }
 
-# The fallback photo is the civic city skyline of Gujranwala, NEVER a hospital photo
 DEFAULT_NEWS_PHOTO = "assets/photos/civic_city.jpg"
 
 
@@ -112,10 +116,14 @@ def translate_to_urdu(english_text):
     if is_already_urdu(cleaned):
         return cleaned
 
-    # Specific high-frequency news title translations for Gujranwala
     low = cleaned.lower()
-    if "attaullah tarar" in low and ("ecp" in low or "notice" in low or "na-77" in low):
+    # Specific high-frequency news title translations for Gujranwala
+    if "attaullah tarar" in low and ("ecp" in low or "notice" in low or "na-77" in low or "cec" in low):
         return "این اے 77 گوجرانوالہ: عطا تارڑ کو الیکشن کمیشن کا نوٹس"
+    if "mauritania" in low and ("traffick" in low or "jailed" in low or "smuggler" in low):
+        return "گوجرانوالہ: انسانی اسمگلر کو 10 سال قید کی سزا"
+    if "medical superintendent" in low or ("appoint" in low and "hospital" in low):
+        return "گوجرانوالہ: ہسپتالوں میں نئے ایم ایس کی تعیناتی"
 
     try:
         tr = MyMemoryTranslator(source="en-US", target="ur-PK")
@@ -132,7 +140,7 @@ def extract_category_and_photo(text):
     """
     Pick relevant category pill and strictly matched photo path based on keywords.
     Ensures that accidents get accident photos, politics gets election photos,
-    crime gets police photos, and hospital is strictly reserved for medical topics.
+    courts/crimes get police/legal photos, and hospital is strictly reserved for medical topics.
     """
     lower = text.lower()
 
@@ -141,47 +149,52 @@ def extract_category_and_photo(text):
        any(w in text for w in ["ہسپتال", "ڈاکٹر", "طبی", "مریض", "ہیلتھ", "ادویات", "علاج"]):
         return "صحت و طبی سہولیات", "assets/photos/hospital_care.jpg"
 
-    # 2. Politics / NA-77 By-Elections / ECP
-    if any(w in lower for w in ["election", "by-election", "by-poll", "ecp", "tarar", "na-77", "vote", "polling"]) or \
+    # 2. Court / FIA / Trafficking / Sentencing / Crime Law
+    if any(w in lower for w in ["trafficker", "trafficking", "smuggler", "smuggling", "jailed", "court", "sentence", "sentenced", "fia", "prison", "convict"]) or \
+       any(w in text for w in ["عدالت", "سزا", "قید", "اسمگلر", "اسمگلنگ", "ایف آئی اے", "مجرم"]):
+        return "عدالت و قانون", "assets/photos/police_patrol.jpg"
+
+    # 3. Politics / NA-77 By-Elections / ECP
+    if any(w in lower for w in ["election", "by-election", "by-poll", "ecp", "tarar", "na-77", "vote", "polling", "cec"]) or \
        any(w in text for w in ["الیکشن", "انتخابات", "ضمنی", "تارڑ", "ضابطہ اخلاق", "این اے", "ووٹ", "پولنگ"]):
         return "سیاست و انتخابات", "assets/photos/elections_politics.jpg"
 
-    # 3. Traffic / Accidents / Highway Rescue
-    if any(w in lower for w in ["accident", "crash", "collision", "traffic", "rescue", "highway", "injured", "died", "killed"]) or \
-       any(w in text for w in ["حادثہ", "ٹریفک", "تصادم", "ریسکیو", "ہلاک", "زخمی", "گاڑی", "موٹر وے"]):
+    # 4. Traffic / Accidents / Highway Rescue
+    if any(w in lower for w in ["accident", "crash", "collision", "traffic", "rescue", "highway", "collision"]) or \
+       any(w in text for w in ["حادثہ", "ٹریفک", "تصادم", "ریسکیو", "گاڑی", "موٹر وے"]):
         return "ٹریفک الرٹ و حادثات", "assets/photos/traffic_accident.jpg"
 
-    # 4. Smog / Pollution / Factory Smoke
+    # 5. Smog / Pollution / Factory Smoke
     if any(w in lower for w in ["smog", "pollution", "factory", "smoke", "environment", "kiln"]) or \
        any(w in text for w in ["سموگ", "آلودگی", "دھواں", "بھٹہ", "ماحول"]):
         return "ماحولیات و سموگ", "assets/photos/smog_factory.jpg"
 
-    # 5. Police / Crime / Security Patrol
-    if any(w in lower for w in ["police", "crime", "arrest", "arrested", "robbery", "patrol", "fir", "crackdown", "gang"]) or \
+    # 6. Police / Crime / Security Patrol
+    if any(w in lower for w in ["police", "crime", "arrest", "arrested", "robbery", "patrol", "fir", "crackdown", "gang", "encounter"]) or \
        any(w in text for w in ["پولیس", "کریک ڈاؤن", "گرفتار", "ڈکیتی", "ملزم", "واردات", "ایف آئی آر", "کارروائی", "چوری"]):
         return "امن و امان", "assets/photos/police_patrol.jpg"
 
-    # 6. Education / Exam / Board
+    # 7. Education / Exam / Board
     if any(w in lower for w in ["board", "education", "matric", "inter", "school", "college", "exam", "result", "student"]) or \
        any(w in text for w in ["تعلیم", "بورڈ", "رزلٹ", "امتحان", "اسکول", "کالج", "طالب علم"]):
         return "تعلیمی سرگرمیاں", "assets/photos/education_board.jpg"
 
-    # 7. Industry / Trade / Chamber of Commerce
+    # 8. Industry / Trade / Chamber of Commerce
     if any(w in lower for w in ["industry", "chamber", "business", "trade", "export"]) or \
        any(w in text for w in ["چیمبر", "صنعت", "تاجر", "برآمدات", "کاروبار"]):
         return "صنعت و تجارت", "assets/photos/industry_chamber.jpg"
 
-    # 8. Railway / Transport
+    # 9. Railway / Transport
     if any(w in lower for w in ["railway", "train", "station"]) or \
        any(w in text for w in ["ریلوے", "ٹرین", "اسٹیشن"]):
         return "ریلوے و ٹرانسپورٹ", "assets/photos/railway_station.jpg"
 
-    # 9. Wrestling / Sports
+    # 10. Wrestling / Sports
     if any(w in lower for w in ["pehlwan", "wrestling", "dangal", "sports", "butt"]) or \
        any(w in text for w in ["پہلوان", "دنگل", "کشتی", "کھلاڑی", "گولڈ میڈل"]):
         return "کھیل و ثقافت", "assets/photos/wrestling_sports.jpg"
 
-    # 10. Food & Culinary
+    # 11. Food & Culinary
     if any(w in lower for w in ["food", "tikka", "karahi", "lassi"]) or \
        any(w in text for w in ["تکہ", "کھانا", "لسی", "ذائقہ"]):
         return "ذائقہ گوجرانوالہ", "assets/photos/food_heritage.jpg"
@@ -214,7 +227,13 @@ def craft_urdu_news_package(news_item):
     category_ur, photo_path = extract_category_and_photo(raw_title + " " + headline_ur)
 
     # Craft 3 punchy, single-line structured bullet lines (32-42 chars each)
-    if category_ur == "سیاست و انتخابات":
+    if category_ur == "عدالت و قانون":
+        desc_lines = [
+            "انسانی اسمگلنگ اور جرائم میں ملوث عناصر کو سزائیں۔",
+            "گوجرانوالہ عدالت کی جانب سے بھاری جرمانے عائد۔",
+            "غیر قانونی ٹریول ایجنٹس کے خلاف سخت کریک ڈاؤن۔"
+        ]
+    elif category_ur == "سیاست و انتخابات":
         desc_lines = [
             "این اے 77 میں ضابطہ اخلاق کی پابندی کی ہدایت۔",
             "ضوابط کی خلاف ورزی پر رہنماؤں سے جواب طلب۔",
