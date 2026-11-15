@@ -151,29 +151,29 @@ def generate_templated_news_card(
     h_words = len(clean_h.split())
     h_chars = len(clean_h)
 
-    if h_words <= 8 and h_chars <= 42:
-        h_size = 58
-        h_lh = 1.48
-    elif h_words <= 12 and h_chars <= 60:
-        h_size = 52
-        h_lh = 1.42
+    if h_words <= 8 and h_chars <= 45:
+        h_size = 64
+        h_lh = 1.45
+    elif h_words <= 12 and h_chars <= 65:
+        h_size = 56
+        h_lh = 1.40
     else:
-        h_size = 46
-        h_lh = 1.36
+        h_size = 48
+        h_lh = 1.35
 
     # Dynamic description sizing (Regular weight, natural paragraph flow)
     desc_clean = format_description_text(description)
     desc_chars = len(desc_clean)
 
     if desc_chars <= 110:
-        d_size = 38
-        d_lh = 1.65
+        d_size = 42
+        d_lh = 1.60
     elif desc_chars <= 165:
-        d_size = 33
-        d_lh = 1.58
+        d_size = 37
+        d_lh = 1.55
     else:
-        d_size = 29
-        d_lh = 1.50
+        d_size = 32
+        d_lh = 1.48
 
     html_content = f"""<!DOCTYPE html>
 <html lang="ur" dir="rtl">
@@ -220,8 +220,7 @@ def generate_templated_news_card(
     color: #07193b;
     font-size: {h_size}px;
     line-height: {h_lh};
-    font-weight: bold;
-    text-shadow: 0.5px 0.5px 0 #07193b, -0.5px -0.5px 0 #07193b;
+    font-weight: normal;
   }}
   
   /* Center Photo Frame: 914 x 236 px */
