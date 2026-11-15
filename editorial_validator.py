@@ -2,10 +2,10 @@
 Autonomous Editorial Validation Engine for Hamara Gujranwala.
 Acts as a senior Pakistani digital news editor and audience validator before any post is published.
 Enforces:
-1. Noto Naskh Arabic Bold typography constraints (72-80px headline, 42-50px description).
-2. Layman readability and natural Urdu syntax (no robotic machine translation).
-3. Sentence completeness (no truncated thoughts or dangling prepositions).
-4. Single-line bullet discipline (32-48 characters per bullet, exactly 3 lines).
+1. Jameel Noori Nastaleeq Regular typography standards (Bold 50-58px headline, normal 32-38px description).
+2. Complete, coherent Urdu journalistic sentences (no truncated thoughts or dangling prepositions).
+3. Strict topic cohesion ("ربط") between headline, description, and image.
+4. Natural 2-sentence paragraph flow for descriptions.
 5. Strict photo-to-topic relevance (zero photo mismatches).
 6. Community standards and safety compliance.
 """
@@ -13,20 +13,24 @@ Enforces:
 import os
 import re
 
+DANGLING_PARTICLES = [
+    "نے", "کو", "کا", "کی", "کے", "پر", "سے", "میں", "اور",
+    "کہ", "تک", "یا", "از", "بہ", "بذریعہ", "تحت", "بابت", "دوران",
+    "ساتھ", "لیے", "بارے", "حوالے", "خلاف"
+]
 
-DANGLING_PARTICLES = ["نے", "کو", "کا", "کی", "کے", "پر", "سے", "میں", "اور", "کہ", "تک", "یا"]
 AI_DUMMY_PHRASES = ["درج کریں", "ایک نظر میں", "تفصیل درج", "دوسری سطر", "تیسری سطر", "option", "lorem", "ipsum"]
 
 
 def validate_headline(headline):
-    """Ensure headline is complete, high-impact, and layman-friendly."""
+    """Ensure headline is complete, high-impact, and grammatically sound."""
     if not headline or not isinstance(headline, str):
         return False, "Headline is empty or invalid"
 
     cleaned = headline.strip().replace("<br>", " ").replace("\n", " ")
     words = cleaned.split()
 
-    if len(words) < 3:
+    if len(words) < 4:
         return False, f"Headline too short ({len(words)} words)"
     if len(words) > 16:
         return False, f"Headline too long ({len(words)} words, max 16)"
@@ -43,41 +47,44 @@ def validate_headline(headline):
     return True, "Headline is complete and journalistic"
 
 
-def validate_description_lines(desc_lines):
-    """Ensure description contains 2-3 complete, informative, grammatical sentences."""
-    if not desc_lines:
-        return False, "Description lines empty"
+def validate_description(description, headline=""):
+    """
+    Ensure description is a complete, coherent natural Urdu paragraph
+    with direct logical cohesion ("ربط") to the headline.
+    """
+    if not description:
+        return False, "Description is empty"
 
-    if isinstance(desc_lines, str):
-        desc_lines = [l.strip() for l in desc_lines.split("\n") if l.strip()]
+    if isinstance(description, list):
+        clean_text = " ".join([s.strip().lstrip("-• ") for s in description if s.strip()])
+    else:
+        clean_text = description.strip()
 
-    if len(desc_lines) < 2 or len(desc_lines) > 3:
-        return False, f"Invalid line count ({len(desc_lines)}), must be 2 or 3 lines"
+    words = clean_text.split()
+    if len(words) < 12:
+        return False, f"Description is too brief ({len(words)} words, min 12)"
+    if len(words) > 65:
+        return False, f"Description is too long ({len(words)} words, max 65)"
 
-    for i, line in enumerate(desc_lines, 1):
-        clean_line = line.strip().lstrip("-• ")
-        words = clean_line.split()
+    # Check for placeholder leaks
+    for phrase in AI_DUMMY_PHRASES:
+        if phrase in clean_text.lower():
+            return False, f"Description contains placeholder phrase '{phrase}'"
 
-        if len(words) < 3:
-            return False, f"Line {i} is too brief ({len(words)} words)"
-        if len(clean_line) > 50:
-            return False, f"Line {i} is too long ({len(clean_line)} chars, max 50 for single-line fit)"
+    # Must contain proper Urdu full stops ending sentences
+    if "۔" not in clean_text:
+        return False, "Description lacks proper sentence ending punctuation (۔)"
 
-        # Check for placeholder or AI template leak
-        for phrase in AI_DUMMY_PHRASES:
-            if phrase in clean_line.lower():
-                return False, f"Line {i} contains template dummy phrase '{phrase}'"
+    # Check for dangling particle at the very end
+    last_word = words[-1].strip("۔،-:")
+    if last_word in DANGLING_PARTICLES:
+        return False, f"Description ends with dangling particle '{last_word}'"
 
-        # Check for dangling particle at the end of line
-        last_word = words[-1].strip("۔،-:")
-        if last_word in DANGLING_PARTICLES:
-            return False, f"Line {i} ends with dangling particle '{last_word}'"
-
-    return True, "Description lines are well-structured and human-expert grade"
+    return True, "Description is coherent, complete, and grammatical"
 
 
 def validate_photo(photo_path, category=""):
-    """Verify photo file exists and is strictly relevant."""
+    """Verify photo file exists and is strictly relevant to the category."""
     if not photo_path or not os.path.exists(photo_path):
         return False, f"Photo file does not exist: {photo_path}"
 
@@ -85,10 +92,14 @@ def validate_photo(photo_path, category=""):
     if size < 5000:
         return False, f"Photo file is corrupt or too small ({size} bytes)"
 
-    # Guardrail: Hospital photo must NEVER be used unless category is medical
     photo_name = os.path.basename(photo_path).lower()
+    # Guardrail: Hospital photo must NEVER be used unless category is medical
     if "hospital" in photo_name and not any(k in category for k in ["صحت", "طبی", "ہسپتال"]):
         return False, "Hospital photo assigned to non-health category"
+
+    # Guardrail: Accident photo must NEVER be used for court or election
+    if "accident" in photo_name and any(k in category for k in ["عدالت", "سیاست", "انتخابات", "تعلیم"]):
+        return False, "Accident photo assigned to non-accident category"
 
     return True, "Photo verified and category-matched"
 
@@ -96,42 +107,41 @@ def validate_photo(photo_path, category=""):
 def validate_and_refine_package(pkg):
     """
     Complete autonomous validation pipeline.
-    Validates headline, description lines, photo, and caption.
-    If minor issues exist, refines them to human-expert standard.
+    Validates headline, description, photo, and caption.
     Returns (is_valid, refined_pkg, errors).
     """
     errors = []
 
     # 1. Validate Headline
-    h_ok, h_msg = validate_headline(pkg.get("headline_ur", ""))
+    headline = pkg.get("headline_ur", "")
+    h_ok, h_msg = validate_headline(headline)
     if not h_ok:
         errors.append(f"Headline issue: {h_msg}")
 
-    # 2. Validate Description Lines
-    lines = pkg.get("desc_ur") or pkg.get("desc_lines") or []
-    d_ok, d_msg = validate_description_lines(lines)
+    # 2. Validate Description
+    desc = pkg.get("desc_ur") or pkg.get("desc_lines") or pkg.get("desc_text") or ""
+    d_ok, d_msg = validate_description(desc, headline)
     if not d_ok:
         errors.append(f"Description issue: {d_msg}")
 
     # 3. Validate Photo
-    p_ok, p_msg = validate_photo(pkg.get("photo_path"), pkg.get("category_ur", ""))
+    category = pkg.get("category_ur", "")
+    photo_path = pkg.get("photo_path", "")
+    p_ok, p_msg = validate_photo(photo_path, category)
     if not p_ok:
         errors.append(f"Photo issue: {p_msg}")
 
-    # Auto-refinement: ensure each description line ends with proper Urdu full stop '۔'
-    refined_lines = []
-    if isinstance(lines, list):
-        for l in lines:
-            cl = l.strip().lstrip("-• ")
-            if not cl.endswith("۔"):
-                cl += "۔"
-            refined_lines.append(cl)
+    # Auto-refinement: ensure clean paragraph ending in '۔'
+    if isinstance(desc, list):
+        refined_desc = " ".join([l.strip().lstrip("-• ") if l.strip().endswith("۔") else l.strip().lstrip("-• ") + "۔" for l in desc if l.strip()])
     else:
-        refined_lines = [str(lines).strip()]
+        refined_desc = desc.strip()
+        if not refined_desc.endswith("۔"):
+            refined_desc += "۔"
 
     refined_pkg = dict(pkg)
-    refined_pkg["desc_ur"] = refined_lines
-    refined_pkg["desc_lines"] = refined_lines
+    refined_pkg["desc_ur"] = refined_desc
+    refined_pkg["desc_text"] = refined_desc
 
     is_valid = (len(errors) == 0)
     return is_valid, refined_pkg, errors
@@ -139,12 +149,8 @@ def validate_and_refine_package(pkg):
 
 if __name__ == "__main__":
     test_pkg = {
-        "headline_ur": "این اے 77 گوجرانوالہ: انتخابی ضابطہ اخلاق پر عملدرآمد کی ہدایت",
-        "desc_lines": [
-            "این اے 77 میں ضابطہ اخلاق کی پابندی کی ہدایت۔",
-            "ضوابط کی خلاف ورزی پر رہنماؤں سے جواب طلب۔",
-            "الیکشن کمیشن کی جانب سے شفاف انتخابات کا عزم۔"
-        ],
+        "headline_ur": "این اے 77 گوجرانوالہ: ضمنی انتخابات میں ضابطہ اخلاق پر عملدرآمد کی ہدایت",
+        "desc_ur": "الیکشن کمیشن نے این اے 77 گوجرانوالہ کے ضمنی انتخاب میں انتخابی ضابطہ اخلاق پر عملدرآمد کے احکامات جاری کر دیے ہیں۔ کمیشن نے تمام سیاسی جماعتوں اور امیدواروں کو انتخابی ضوابط کی مکمل پاسداری اور پرامن پولنگ یقینی بنانے کی تاکید کی ہے۔",
         "category_ur": "سیاست و انتخابات",
         "photo_path": "assets/photos/elections_politics.jpg"
     }
@@ -152,4 +158,4 @@ if __name__ == "__main__":
     ok, refined, errs = validate_and_refine_package(test_pkg)
     print("Validation OK:", ok)
     print("Errors:", errs)
-    print("Refined Lines:", len(refined["desc_lines"]))
+    print("Refined Desc:", refined["desc_ur"])

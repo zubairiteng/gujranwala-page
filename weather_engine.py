@@ -1,8 +1,8 @@
 """
 Daily Morning Weather & Smog/AQI Engine for Gujranwala.
 Fetches real-time meteorological and air quality index data for Gujranwala,
-crafts human-expert Urdu forecasts with 3 structured bullet points,
-renders branded cards on the official V2 template with Noto Naskh Arabic Bold,
+crafts human-expert Urdu forecasts in natural cohesive paragraph format,
+renders branded cards on the official V2 template with Jameel Noori Nastaleeq Regular,
 and posts to Facebook.
 """
 
@@ -124,11 +124,10 @@ def craft_weather_package():
 
     headline_ur = "گوجرانوالہ کا آج کا موسم\nاور اہم اسموگ الرٹ"
 
-    desc_lines = [
-        f"درجہ حرارت: زیادہ سے زیادہ {data['temp_max']}، کم سے کم {data['temp_min']} ڈگری۔",
-        f"موسمی صورتحال: مطلع {data['w_desc']} متوقع۔",
-        f"ائیر کوالٹی انڈیکس {data['us_aqi']}، ماسک لازمی استعمال کریں۔"
-    ]
+    desc_text = (
+        f"محکمہ موسمیات کے مطابق آج گوجرانوالہ میں زیادہ سے زیادہ درجہ حرارت {data['temp_max']} اور کم سے کم {data['temp_min']} ڈگری رہنے کا امکان ہے۔ "
+        f"شہر میں ائیر کوالٹی انڈیکس {data['us_aqi']} ({aqi_status}) ریکارڈ کیا گیا ہے، لہٰذا شہری اور موٹرسائیکل سوار ماسک کا استعمال لازمی کریں۔"
+    )
 
     # Select strictly matched photo
     if data["us_aqi"] >= 150:
@@ -157,7 +156,7 @@ def craft_weather_package():
 
     return {
         "headline_ur": headline_ur,
-        "desc_lines": desc_lines,
+        "desc_text": desc_text,
         "category_ur": "موسم اور اسموگ",
         "photo_path": photo_path,
         "caption": caption,
@@ -173,7 +172,7 @@ def run_weather_post(poster):
     temp_card = "temp_weather_card.png"
     generate_templated_news_card(
         headline=pkg["headline_ur"],
-        description=pkg["desc_lines"],
+        description=pkg["desc_text"],
         category="موسم اور اسموگ",
         photo_path=pkg["photo_path"],
         source_str="حوالہ: محکمہ موسمیات و ماحولیات",
@@ -194,12 +193,10 @@ def run_weather_post(poster):
 if __name__ == "__main__":
     pkg = craft_weather_package()
     print("Weather Headline:", pkg["headline_ur"])
-    print("Lines:")
-    for l in pkg["desc_lines"]:
-        print("-", l)
+    print("Desc:", pkg["desc_text"])
     out = generate_templated_news_card(
         headline=pkg["headline_ur"],
-        description=pkg["desc_lines"],
+        description=pkg["desc_text"],
         category="موسم اور اسموگ",
         photo_path=pkg["photo_path"],
         source_str="حوالہ: محکمہ موسمیات و ماحولیات",
