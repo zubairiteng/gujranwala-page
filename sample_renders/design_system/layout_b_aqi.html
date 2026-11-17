@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="ur" dir="rtl">
+<head>
+<meta charset="utf-8">
+<style>
+  
+  @font-face {
+    font-family: 'NotoNastaliqUrdu';
+    src: url('file:///C:/Users/DELL/.gemini/antigravity/worktrees/delightful-goodall/gujranwala_facebook_page_automation/assets/fonts/NotoNastaliqUrdu-Variable.ttf') format('truetype');
+    font-weight: 700;
+  }
+  @font-face {
+    font-family: 'NotoSansArabic';
+    src: url('file:///C:/Users/DELL/.gemini/antigravity/worktrees/delightful-goodall/gujranwala_facebook_page_automation/assets/fonts/NotoSansArabic-Variable.ttf') format('truetype');
+    font-weight: 700;
+  }
+  @font-face {
+    font-family: 'NotoSansArabic';
+    src: url('file:///C:/Users/DELL/.gemini/antigravity/worktrees/delightful-goodall/gujranwala_facebook_page_automation/assets/fonts/NotoSansArabic-Variable.ttf') format('truetype');
+    font-weight: 500;
+  }
+  @font-face {
+    font-family: 'Inter';
+    src: url('file:///C:/Users/DELL/.gemini/antigravity/worktrees/delightful-goodall/gujranwala_facebook_page_automation/assets/fonts/Inter-Variable.ttf') format('truetype');
+    font-weight: 600 700;
+  }
+  @font-face {
+    font-family: 'BarlowCondensed';
+    src: url('file:///C:/Users/DELL/.gemini/antigravity/worktrees/delightful-goodall/gujranwala_facebook_page_automation/assets/fonts/BarlowCondensed-ExtraBold.ttf') format('truetype');
+    font-weight: 800;
+  }
+
+  /* Color System */
+  :root {
+    --deep-navy: #102B3A;
+    --burgundy: #700D22;
+    --warm-white: #F7F7F2;
+    --yellow-accent: #FFE044;
+    --dark-text: #17212B;
+    --muted-grey: #E3E8EB;
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    width: 1080px;
+    height: 1080px;
+    background: var(--warm-white);
+    color: var(--dark-text);
+    font-family: 'NotoSansArabic', sans-serif;
+    position: relative;
+    overflow: hidden;
+    padding: 60px; /* Outer safe margin: 60px */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+
+  /* Header Bar */
+  .header-bar {
+    width: 960px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    direction: ltr;
+  }
+  .brand-logo-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .brand-monogram {
+    width: 44px;
+    height: 44px;
+    border-radius: 8px;
+    background: var(--deep-navy);
+    color: var(--warm-white);
+    font-family: 'Inter', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .brand-name-en {
+    font-family: 'Inter', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--deep-navy);
+  }
+  .metric-label-pill {
+    background: var(--deep-navy);
+    color: var(--warm-white);
+    font-family: 'NotoSansArabic', sans-serif;
+    font-size: 34px;
+    font-weight: 700;
+    padding: 4px 22px;
+    border-radius: 8px;
+    direction: rtl;
+  }
+
+  /* Dominant Statistic Panel (height: 380px) */
+  .stat-panel {
+    width: 960px;
+    height: 380px;
+    background: var(--burgundy);
+    border-radius: 20px;
+    padding: 26px 36px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 6px 20px rgba(16, 43, 58, 0.2);
+  }
+  .stat-number-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 16px;
+    direction: ltr;
+  }
+  .stat-figure {
+    font-family: 'BarlowCondensed', sans-serif;
+    font-size: 165px; /* Main statistic: 150–190 px */
+    font-weight: 800;
+    color: var(--yellow-accent);
+    line-height: 0.9;
+    letter-spacing: -2px;
+  }
+  .stat-unit {
+    font-family: 'Inter', sans-serif;
+    font-size: 48px;
+    font-weight: 700;
+    color: var(--warm-white);
+    letter-spacing: 1px;
+  }
+  .status-badge {
+    background: rgba(255, 255, 255, 0.15);
+    border: 2px solid var(--warm-white);
+    color: var(--warm-white);
+    font-family: 'NotoSansArabic', sans-serif;
+    font-size: 52px; /* Secondary headline: 54–60 px */
+    font-weight: 700;
+    padding: 6px 40px;
+    border-radius: 40px;
+    margin-top: 14px;
+    line-height: 1.2;
+    text-align: center;
+  }
+
+  /* Practical Points Panel (height: 410px) */
+  .points-panel {
+    width: 960px;
+    height: 410px;
+    background: var(--muted-grey);
+    border-radius: 18px;
+    padding: 24px 36px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+  }
+  .point-item {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    direction: rtl;
+  }
+  .point-bullet {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--burgundy);
+    flex-shrink: 0;
+  }
+  .point-text {
+    font-family: 'NotoSansArabic', sans-serif;
+    font-size: 40px; /* Supporting text: 40–44 px */
+    font-weight: 500;
+    color: var(--dark-text);
+    line-height: 1.3;
+    text-align: right;
+  }
+
+  /* Footer Panel (height: 40px) */
+  .footer-bar {
+    width: 960px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    direction: ltr;
+    padding: 0 4px;
+  }
+  .station-meta {
+    font-family: 'Inter', sans-serif;
+    font-size: 24px;
+    color: #556270;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .footer-urdu-brand {
+    font-family: 'NotoSansArabic', sans-serif;
+    font-size: 30px;
+    font-weight: 700;
+    color: var(--deep-navy);
+    direction: rtl;
+    white-space: nowrap;
+  }
+</style>
+</head>
+<body>
+  <!-- Header Bar -->
+  <div class="header-bar">
+    <div class="brand-logo-group">
+      <div class="brand-monogram">HG</div>
+      <span class="brand-name-en">Hamara Gujranwala</span>
+    </div>
+    <div class="metric-label-pill">ایئر کوالٹی انڈیکس (AQI)</div>
+  </div>
+
+  <!-- Dominant Statistic Panel -->
+  <div class="stat-panel">
+    <div class="stat-number-row">
+      <span class="stat-figure">385</span>
+      <span class="stat-unit">AQI</span>
+    </div>
+    <div class="status-badge">انتہائی غیر صحت بخش</div>
+  </div>
+
+  <!-- Practical Points Panel -->
+  <div class="points-panel">
+    <div class="point-item"><div class="point-bullet"></div><div class="point-text">گھر سے باہر ماسک کا لازمی استعمال کریں۔</div></div><div class="point-item"><div class="point-bullet"></div><div class="point-text">بزرگ اور بچے کھلی فضا میں سرگرمیاں محدود رکھیں۔</div></div><div class="point-item"><div class="point-bullet"></div><div class="point-text">صنعتی شاہراہوں پر غیر ضروری سفر سے گریز کریں۔</div></div>
+  </div>
+
+  <!-- Branded Footer -->
+  <div class="footer-bar">
+    <div class="station-meta">EPA Station, Civil Lines • 17 Nov 2026, 9 PM PKT</div>
+    <div class="footer-urdu-brand">گوجرانوالہ انوائرمنٹ بلیٹن</div>
+  </div>
+</body>
+</html>
