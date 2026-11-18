@@ -53,9 +53,10 @@ def render_html_to_png(html_content, output_png, width=1080, height=1080):
 # ==============================================================================
 BASE_CSS = f"""
   @font-face {{
-    font-family: 'NotoNastaliqUrdu';
-    src: url('file:///{FONTS_DIR}/NotoNastaliqUrdu-Variable.ttf') format('truetype');
-    font-weight: 700;
+    font-family: 'JameelNooriNastaleeq';
+    src: url('file:///{FONTS_DIR}/JameelNooriNastaleeq-Regular.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
   }}
   @font-face {{
     font-family: 'NotoSansArabic';
@@ -193,7 +194,7 @@ def render_layout_a_news(
     height: 320px;
     background: var(--burgundy);
     border-radius: 16px;
-    padding: 65px 40px 25px;
+    padding: 40px 40px 20px;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -202,9 +203,8 @@ def render_layout_a_news(
     box-shadow: 0 4px 16px rgba(112, 13, 34, 0.22);
   }}
   .hl-line {{
-    font-family: 'NotoNastaliqUrdu', serif;
-    font-size: 64px; /* Calibrated 64px */
-    font-weight: 700;
+    font-family: 'JameelNooriNastaleeq', serif;
+    font-size: 74px; /* Standard authentic Jameel Noori Nastaleeq size */
     color: var(--warm-white);
     line-height: 1.55;
     white-space: nowrap;
@@ -266,12 +266,12 @@ def render_layout_a_news(
     white-space: nowrap;
   }}
   .footer-urdu-brand {{
-    font-family: 'NotoSansArabic', sans-serif;
-    font-size: 32px;
-    font-weight: 700;
+    font-family: 'JameelNooriNastaleeq', serif;
+    font-size: 38px;
     color: var(--burgundy);
     direction: rtl;
     white-space: nowrap;
+    line-height: 1;
   }}
 </style>
 </head>
@@ -481,12 +481,12 @@ def render_layout_b_weather_aqi(
     white-space: nowrap;
   }}
   .footer-urdu-brand {{
-    font-family: 'NotoSansArabic', sans-serif;
-    font-size: 30px;
-    font-weight: 700;
+    font-family: 'JameelNooriNastaleeq', serif;
+    font-size: 36px;
     color: var(--deep-navy);
     direction: rtl;
     white-space: nowrap;
+    line-height: 1;
   }}
 </style>
 </head>
@@ -616,7 +616,7 @@ def render_layout_c_community_jobs(
     height: 260px;
     background: var(--deep-navy);
     border-radius: 16px;
-    padding: 55px 40px 20px;
+    padding: 35px 40px 15px;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -624,11 +624,10 @@ def render_layout_c_community_jobs(
     text-align: center;
   }}
   .hl-line {{
-    font-family: 'NotoNastaliqUrdu', serif;
-    font-size: 54px; /* Calibrated 54px */
-    font-weight: 700;
+    font-family: 'JameelNooriNastaleeq', serif;
+    font-size: 66px; /* Jameel Noori Nastaleeq calibrated size */
     color: var(--warm-white);
-    line-height: 1.55;
+    line-height: 1.5;
     white-space: nowrap;
     text-align: center;
   }}
@@ -702,12 +701,12 @@ def render_layout_c_community_jobs(
     white-space: nowrap;
   }}
   .footer-urdu-brand {{
-    font-family: 'NotoSansArabic', sans-serif;
-    font-size: 30px;
-    font-weight: 700;
+    font-family: 'JameelNooriNastaleeq', serif;
+    font-size: 36px;
     color: var(--deep-navy);
     direction: rtl;
     white-space: nowrap;
+    line-height: 1;
   }}
 </style>
 </head>
@@ -796,4 +795,4 @@ if __name__ == "__main__":
         timestamp_str="17 Nov 2026, 5 PM PKT",
         output_png="sample_renders/design_system/layout_c_jobs.png"
     )
-    print("All 3 perfected layouts generated successfully!")
+    print("All 3 Jameel-powered layouts generated successfully!")
